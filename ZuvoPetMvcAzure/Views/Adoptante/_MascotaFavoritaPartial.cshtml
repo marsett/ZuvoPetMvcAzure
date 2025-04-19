@@ -1,0 +1,166 @@
+﻿@model dynamic
+@{
+    if (Model == null)
+    {
+        <div class="text-center">
+            <p>No hay mascotas favoritas para mostrar.</p>
+        </div>
+        return;
+    }
+
+    var mascota = Model.Mascota;
+    var paginaActual = Model.PaginaActual;
+    var totalPaginas = Model.TotalPaginas;
+
+    var años = mascota.Edad / 12;
+    var meses = mascota.Edad % 12;
+}
+@{
+    @Html.AntiForgeryToken()
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <!-- Tarjeta de mascota -->
+            <div class="card pet-card border-0 shadow-lg overflow-hidden w-100 mb-4">
+                <div class="position-relative">
+                    <img src="~/images/@mascota.Foto"
+                         class="card-img-top pet-card-image"
+                         alt="@mascota.Nombre">
+                    <div class="pet-card-overlay">
+                        <div class="pet-card-badges">
+                            <div class="pet-sex-badge @(mascota.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                <i class="fas @(mascota.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="pet-card-content p-4">
+                        <div class="pet-name-container">
+                            <h4 class="pet-name">
+                                @mascota.Nombre
+                            </h4>
+
+                            <button id="btnEliminarFavorito"
+                                    class="btn btn-link p-0 favorite-heart">
+                                <i class="fas fa-heart-broken text-danger"></i>
+                            </button>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a asp-controller="Adoptante"
+                               asp-action="DetallesMascota"
+                               asp-route-idmascota="@mascota.Id"
+                               class="btn btn-primary btn-lg w-100 adopt-btn">
+                                Más sobre @mascota.Nombre
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles de paginación -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="pagination-controls d-flex justify-content-center mt-3 mb-5">
+                        <button class="btn btn-outline-primary me-2" onclick="cargarPagina(1)" @(paginaActual <= 1 ? "disabled" : "")>
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button class="btn btn-outline-primary me-2" onclick="cargarPagina(@(paginaActual - 1))" @(paginaActual <= 1 ? "disabled" : "")>
+                            <i class="fas fa-angle-left"></i>
+                        </button>
+                        <span class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center mx-2">
+                            <i class="fas fa-paw me-1"></i>
+                            <span id="paginaInfo">@paginaActual de @totalPaginas</span>
+                        </span>
+                        <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@(paginaActual + 1))" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                            <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@totalPaginas)" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- En el head del Layout -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+<script>
+         $(document).ready(function () {
+
+            $("#btnEliminarFavorito").click(function(e) {
+                console.log("HOLA");
+                e.preventDefault();
+                // Primero obtienes así:
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            // Pero luego envías con esto:
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                Swal.fire({
+                    title: '¿Quieres eliminar de favoritos a ' + '@mascota.Nombre' + '?',
+                    text: 'Podrás volver a seleccionarle como favorito en ADOPTA',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, quiero eliminarle',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Enviar solicitud AJAX solo si confirma
+                        $.ajax({
+                            url: '@Url.Action("EliminarFavorito", "Adoptante")',
+                            type: 'POST',
+                            data: {
+                                idmascota: @mascota.Id,
+                                __RequestVerificationToken: token
+                            },
+                            headers: {
+                                "X-Requested-With": "XMLHttpRequest"
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: '¡Favorito eliminado!',
+                                        text: 'Eliminaste a ' + '@mascota.Nombre' + ' de favoritos',
+                                        icon: 'success'
+                                    }).then((result) => {
+                                        // Recarga la vista parcial después de cerrar el Swal
+                                        $.ajax({
+                                            url: '@Url.Action("_MascotaFavoritaPartial", "Adoptante")', // Ajusta esta URL a la acción que devuelve la vista parcial
+                                            type: 'GET',
+                                            success: function(response) {
+                                                // Reemplaza el contenedor de la vista parcial con el nuevo contenido
+                                                $("#contenedorMascotas").html(response);
+                                            }
+                                        });
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Error',
+                                        response.message || 'No se pudo procesar tu solicitud',
+                                        'error'
+                                    );
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error("Error en la solicitud:", xhr);
+                                Swal.fire(
+                                    'Error',
+                                    'Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
+
+        });
+</script>

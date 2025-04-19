@@ -1,0 +1,242 @@
+﻿@model List<HistoriaExitoLandingDTO>
+
+<div class="container-fluid px-4 py-4 pet-adoption-container mt-3">
+    <div class="row">
+        <!-- Columna izquierda: Título principal y texto -->
+        <div class="col-md-6 d-flex flex-column justify-content-center mb-4">
+            <h1 class="pet-page-title">
+                <span class="title-highlight">¡Encuentra</span> a tu
+                <span class="title-highlight">compañero</span> peludo!
+                <span class="title-emoji">🐾</span>
+            </h1>
+            <p class="lead text-muted my-3">Explora historias de adopción de mascotas, encuentra refugios cercanos y haz la diferencia.</p>
+
+            <!-- Botones CTA directamente bajo el texto principal -->
+            <div class="cta-buttons mt-4 d-flex flex-wrap gap-3">
+                <a asp-controller="Managed" asp-action="Register" class="btn botonregistro btn-lg shadow-sm">
+                    <i class="fas fa-user-plus me-2"></i>Registrarse
+                </a>
+                <a asp-controller="Managed" asp-action="Login" class="btn botoninicio btn-lg shadow-sm">
+                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar sesión
+                </a>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Carrusel más compacto -->
+        <div class="col-md-6">
+            <div id="carrusel" class="carousel slide carousel-dark shadow-lg rounded-3 overflow-hidden" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var historia = Model[i];
+
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <div class="card pet-card border-0">
+                                <img src="~/images/@historia.Foto" class="card-img-top pet-card-image" alt="@historia.Titulo" style="height: 250px; object-fit: cover;">
+                                <div class="card-body bg-light">
+                                    <h5 class="card-title">@historia.Titulo</h5>
+                                    <p class="card-text small">@(historia.Descripcion.Length > 120 ? historia.Descripcion.Substring(0, 120) + "..." : historia.Descripcion)</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#carrusel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carrusel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Información sobre ZuvoPet -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="p-4 rounded-3 shadow-lg bg-light">
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="feature-card text-center p-3">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-heart text-danger fa-2x"></i>
+                            </div>
+                            <h5 class="mb-2">Miles de Mascotas en Adopción</h5>
+                            <p class="text-muted">Conectamos mascotas sin hogar con familias amorosas. Explora nuestro catálogo y encuentra a tu compañero ideal.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="feature-card text-center p-3">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-hands-helping text-primary fa-2x"></i>
+                            </div>
+                            <h5 class="mb-2">Apoyo a Refugios</h5>
+                            <p class="text-muted">Colaboramos con refugios de todo el país para facilitar el proceso de adopción y mejorar la vida de los animales.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="feature-card text-center p-3">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-paw text-success fa-2x"></i>
+                            </div>
+                            <h5 class="mb-2">Comunidad de Amantes de Animales</h5>
+                            <p class="text-muted">Únete a miles de personas que comparten sus historias de adopción y consejos para el cuidado de mascotas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Registration button */
+    .botonregistro {
+        background-color: #bab986;
+        color: #000039;
+        border: none;
+    }
+
+        .botonregistro:hover {
+            background-color: transparent;
+            color: #bab986;
+            border: 1px solid #bab986;
+        }
+
+    /* Login button */
+    .botoninicio {
+        background-color: #000039;
+        color: #ffffff;
+        border: none;
+    }
+
+        .botoninicio:hover {
+            background-color: transparent;
+            color: #bab986;
+            border: 1px solid #bab986;
+        }
+
+
+
+    /* Page Title Styling */
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #bab986, #bab986);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* ZuvoPet Logo Styling */
+    .ZuvoPet-logo {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(to right, #007bff, #00c6ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+    }
+
+    /* Feature Cards */
+    .feature-card {
+        height: 100%;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    .feature-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background-color: rgba(0,123,255,0.1);
+    }
+
+    /* Pet Card Styling */
+    .pet-card {
+        transition: all 0.3s ease;
+    }
+
+    .pet-card-image {
+        transition: transform 0.4s ease;
+    }
+
+    #carrusel:hover .pet-card-image {
+        transform: scale(1.05);
+    }
+
+    /* Carousel Customization */
+    .carousel-item {
+        transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out;
+    }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 991px) {
+        .pet-page-title
+
+    {
+        font-size: 2rem;
+    }
+
+    .cta-buttons {
+        justify-content: center;
+    }
+
+    }
+
+    @@media (max-width: 767px) {
+        .col-md-6
+
+    {
+        text-align: center;
+    }
+
+    .cta-buttons {
+        justify-content: center;
+    }
+
+    }
+</style>

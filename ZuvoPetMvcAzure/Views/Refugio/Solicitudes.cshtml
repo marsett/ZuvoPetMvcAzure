@@ -1,0 +1,425 @@
+﻿@model List<SolicitudAdopcion>
+
+@{
+    @Html.AntiForgeryToken()
+
+    // Variables de paginación - Debes definir estas variables en tu controlador
+    var paginaActual = ViewBag.PaginaActual;
+    var totalPaginas = ViewBag.TotalPaginas;
+}
+
+<div class="container-fluid px-4 py-5 adoption-requests-container">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="page-title mb-0">
+                <span class="title-highlight">Solicitudes</span> de
+                <span class="title-highlight">Adopción</span>
+                <span class="title-emoji">📋</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="row g-4" id="requestsGallery">
+        @foreach (var solicitud in Model)
+        {
+            <div class="col-12 col-sm-12 col-md-12 col-lg-4">
+                <div class="card request-card h-100 border-0 shadow-lg overflow-hidden">
+                    <div class="position-relative">
+                        <img src="~/images/@solicitud.Mascota.Foto"
+                             class="card-img-top request-card-image"
+                             alt="@solicitud.Mascota.Nombre">
+                        <div class="request-card-overlay">
+                            <div class="request-card-badges">
+                                <div class="request-status-badge bg-@GetStatusColor(solicitud.Estado)">
+                                    <i class="fas @GetStatusIcon(solicitud.Estado)"></i>
+                                    <span class="ms-1">@solicitud.Estado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="request-card-content p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="request-pet-name mb-0">
+                                    <i class="fas fa-paw me-2 text-primary"></i>@solicitud.Mascota.Nombre
+                                </h4>
+                                <span class="request-date badge bg-light text-dark">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    @solicitud.FechaSolicitud.ToString("dd/MM/yyyy")
+                                </span>
+                            </div>
+
+                            <div class="request-info mb-3">
+                                <div class="requester-info">
+                                    <div class="requester-icon">
+                                        <i class="fas fa-user text-info"></i>
+                                    </div>
+                                    <div class="requester-details">
+                                        <span class="label">Solicitante</span>
+                                        <span class="value">@solicitud.Adoptante.Usuario.NombreUsuario</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="request-actions d-flex flex-column align-items-center mt-4">
+                                <a asp-controller="Refugio"
+                                   asp-action="DetallesSolicitud"
+                                   asp-route-idsolicitud="@solicitud.Id"
+                                   class="btn btn-primary mb-2 w-75">
+                                    <i class="fas fa-info-circle me-2"></i>Ver Detalles
+                                </a>
+                                @if (solicitud.Estado == "Pendiente")
+                                {
+                                    <div class="d-flex flex-column align-items-center w-100 gap-2">
+                                        <button type="button"
+                                                class="btn btn-success w-75"
+                                                onclick="confirmarSolicitud(@solicitud.Id, 'Aprobada')">
+                                            <i class="fas fa-check me-2"></i>Aprobar
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-danger w-75"
+                                                onclick="confirmarSolicitud(@solicitud.Id, 'Rechazada')">
+                                            <i class="fas fa-times me-2"></i>Rechazar
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- No requests found message -->
+    @if (!Model.Any())
+    {
+        <div class="text-center mt-5">
+            <h3 class="text-muted">No se encontraron solicitudes de adopción 📭</h3>
+            <p class="lead">Actualmente no hay solicitudes para revisar</p>
+        </div>
+    }
+
+    <!-- Controles de paginación -->
+    @if (Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="pagination-controls d-flex justify-content-center mt-5 mb-5">
+                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(1)" @(paginaActual <= 1 ? "disabled" : "")>
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(@(paginaActual - 1))" @(paginaActual <= 1 ? "disabled" : "")>
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center mx-2">
+                        <i class="fas fa-clipboard-list me-1"></i>
+                        <span id="paginaInfo">@paginaActual de @totalPaginas</span>
+                    </span>
+                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@(paginaActual + 1))" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@totalPaginas)" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    /* Page Title Styling */
+    .page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #007bff, #00c6ff);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Request Card Styling */
+    .request-card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .request-card-image {
+        height: 220px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .request-card:hover .request-card-image {
+        transform: scale(1.1);
+    }
+
+    .request-card-overlay {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .request-card-badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .request-status-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .request-pet-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #007bff;
+    }
+
+    .request-date {
+        font-size: 0.85rem;
+    }
+
+    .request-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+    }
+
+    .requester-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .requester-icon {
+        background-color: rgba(0, 123, 255, 0.1);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .requester-icon i {
+            font-size: 1.5rem;
+        }
+
+    .requester-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .requester-details .label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .requester-details .value {
+            font-weight: bold;
+            color: #333;
+        }
+
+    .request-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .request-card .request-actions {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .request-card .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .request-card .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+    /* Pagination controls styling */
+    .pagination-controls .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+        .pagination-controls .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+    .pagination-controls .badge {
+        height: 40px;
+    }
+</style>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+        function confirmarSolicitud(idSolicitud, estado) {
+        // Confirmación mediante SweetAlert2
+        let mensaje = estado === 'Aprobada'
+            ? '¿Estás seguro de aprobar esta solicitud? La mascota será marcada como adoptada.'
+            : '¿Estás seguro de rechazar esta solicitud?';
+        let iconoConfirmacion = estado === 'Aprobada' ? 'success' : 'warning';
+
+        Swal.fire({
+            title: `¿${estado === 'Aprobada' ? 'Aprobar' : 'Rechazar'} solicitud?`,
+            text: mensaje,
+            icon: iconoConfirmacion,
+            showCancelButton: true,
+            confirmButtonColor: estado === 'Aprobada' ? '#28a745' : '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: estado === 'Aprobada' ? 'Sí, aprobar' : 'Sí, rechazar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                procesarSolicitud(idSolicitud, estado);
+            }
+        });
+    }
+
+    function procesarSolicitud(idSolicitud, estado) {
+        // Obtener el token antiforgery
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        // Enviar solicitud fetch para procesar la solicitud
+        fetch('/Refugio/ProcesarSolicitud', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `idSolicitud=${idSolicitud}&nuevoEstado=${estado}`
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error al procesar la solicitud');
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Procesado!',
+                    text: data.mensaje,
+                    icon: 'success',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    // Recargar la página para mostrar los cambios
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.mensaje,
+                    icon: 'error'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Ocurrió un error al procesar la solicitud',
+                icon: 'error'
+            });
+        });
+    }
+
+        function cargarPagina(pagina) {
+        // Construir una nueva URL con URLSearchParams
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+
+        // Establecer el parámetro de página
+        params.set('pagina', pagina);
+
+        // Actualizar la URL y navegar
+        url.search = params.toString();
+        window.location.href = url.toString();
+    }
+</script>
+
+@functions {
+    string GetStatusColor(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "warning",
+            "Aprobada" => "success",
+            "Rechazada" => "danger",
+            _ => "secondary"
+        };
+    }
+
+    string GetStatusIcon(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "fa-clock",
+            "Aprobada" => "fa-check-circle",
+            "Rechazada" => "fa-times-circle",
+            _ => "fa-question-circle"
+        };
+    }
+}

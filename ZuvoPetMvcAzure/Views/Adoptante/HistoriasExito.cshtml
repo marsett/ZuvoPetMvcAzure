@@ -1,0 +1,1702 @@
+﻿@model List<HistoriaExitoConDetalles>
+
+@{
+    // var nombreUsuario = Context.Session.GetString("USUARIO");
+    // var idusuario = Context.Session.GetInt32("USUARIOID");
+    // var fotoUsuario = Context.Session.GetString("AVATAR");
+
+    string userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+    int? userIdInt = userId != null ? int.Parse(userId) : null;
+    string fotoPerfil = User.Claims.FirstOrDefault(c => c.Type == "FotoPerfil")?.Value;
+    string userName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+    @Html.AntiForgeryToken()
+}
+
+<section id="historias-header" class="position-relative">
+    <div class="decorative-paw decorative-paw-1">🐾</div>
+    <div class="decorative-paw decorative-paw-2">🐾</div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto text-center py-4">
+                <h1 class="panel-welcome-title">
+                    <i class="fas fa-book-open"></i> <span class="title-animated">Historias de Éxito</span>
+                </h1>
+                <p class="panel-welcome-subtitle">Descubre cómo nuestros usuarios han logrado sus objetivos y comparte tu propia historia de superación</p>
+
+                <div class="input-group mt-5 search-box">
+                    <input type="text" class="form-control" id="buscar-historias" placeholder="Buscar historias..." aria-label="Buscar historias">
+                    <button class="btn btn-primary" id="boton-buscar" type="button"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="wave-divider">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100">
+            <path fill="#ffffff" fill-opacity="1" d="M0,32L60,42.7C120,53,240,75,360,74.7C480,75,600,53,720,42.7C840,32,960,32,1080,42.7C1200,53,1320,75,1380,85.3L1440,96L1440,100L1380,100C1320,100,1200,100,1080,100C960,100,840,100,720,100C600,100,480,100,360,100C240,100,120,100,60,100L0,100Z"></path>
+        </svg>
+    </div>
+</section>
+
+<div class="text-center mt-4 mb-5">
+    <a href="@Url.Action("CrearHistoriaExito", "Adoptante")" class="share-story-btn btn btn-primary">
+        <span class="btn-content">
+            <i class="fas fa-plus-circle me-2"></i>
+            <span>Comparte tu historia</span>
+        </span>
+        <span class="btn-shine"></span>
+    </a>
+</div>
+
+<!-- Contador de estadísticas -->
+<section id="stats" class="py-4">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-6">
+                <div class="stat-item">
+                    <div class="stat-icon-container">
+                        <i class="fas fa-heart stat-icon pulse-animation"></i>
+                    </div>
+                    <div class="stat-counter">@Model.Sum(h => h.LikeHistorias.Count)</div>
+                    <div class="stat-label">Me gustas</div>
+                </div>
+            </div>
+            @* <div class="col-md-4">
+                <div class="stat-item">
+                    <div class="stat-icon-container">
+                        <i class="fas fa-comment stat-icon bounce-animation"></i>
+                    </div>
+                    <div class="stat-counter">@Model.Sum(h => h.ComentariosHistoria.Count)</div>
+                    <div class="stat-label">Comentarios</div>
+                </div>
+            </div> *@
+            <div class="col-md-6">
+                <div class="stat-item">
+                    <div class="stat-icon-container">
+                        <i class="fas fa-book-open stat-icon float-animation"></i>
+                    </div>
+                    <div class="stat-counter">@Model.Count</div>
+                    <div class="stat-label">Historias</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="historias-contenido">
+    <div class="container">
+        <div class="historias-exito">
+            @if (Model.Count == 0)
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-book-open empty-icon"></i>
+                    <h3 class="mt-3">No hay historias disponibles</h3>
+                    <p>¡Sé el primero en compartir tu experiencia!</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var historiaConDetalles in Model)
+                {
+                    var historia = historiaConDetalles.HistoriaExito;
+                    var likes = historiaConDetalles.LikeHistorias ?? new List<LikeHistoria>();
+                    var contadorMeGusta = 0;
+                    var contadorMeEncanta = 0;
+                    var contadorInspirador = 0;
+                    var contadorSolidario = 0;
+                    var contadorAsombroso = 0;
+
+                    bool userLiked = false;
+                    if (!string.IsNullOrEmpty(userName))
+                    {
+                        userLiked = likes.Any(l => l.Usuario != null && l.Usuario.NombreUsuario == userName);
+                    }
+
+                    <div class="card historia-card mx-auto my-4" data-aos="fade-up" data-id="@historia.Id">
+                        <div class="row g-0">
+                            <!-- Imagen de la historia -->
+                            <div class="personalizado p-0">
+                                <div class="img-container">
+                                    <img src="~/images/@historia.Foto" class="card-img-left" alt="Imagen de la historia" />
+                                </div>
+                            </div>
+                            <!-- Contenido de la historia -->
+                            <div class="col-md-12 col-xl-8">
+                                <div class="card-body">
+                                    <!-- Título de la historia -->
+                                    <h3 class="card-title">@historia.Titulo</h3>
+
+                                    <!-- Descripción de la historia -->
+                                    <p class="card-text">@historia.Descripcion</p>
+
+                                    <!-- Detalles adicionales -->
+                                    <div class="d-flex justify-content-between align-items-center mt-3 stats-row">
+                                        <div class="historia-stat">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>@historia.FechaPublicacion.ToString("dd/MM/yyyy")</span>
+                                        </div>
+                                        <div class="historia-stat">
+                                            @* <i class="fas fa-heart @(userLiked ? "text-danger" : "")"></i>
+                                            <span>@likes.Count</span> *@
+                                            @foreach(var like in likes){
+                                                
+                                                if(like.TipoReaccion == "MeGusta"){
+                                                    contadorMeGusta++;
+                                                }
+                                                else if (like.TipoReaccion == "MeEncanta"){
+                                                    contadorMeEncanta++;
+                                                }
+                                                else if (like.TipoReaccion == "Inspirador")
+                                                {
+                                                    contadorInspirador++;
+                                                }
+                                                else if (like.TipoReaccion == "Solidario")
+                                                {
+                                                    contadorSolidario++;
+                                                }
+                                                else if (like.TipoReaccion == "Asombroso")
+                                                {
+                                                    contadorAsombroso++;
+                                                }
+                                            }
+                                            <i class="fas fa-heart text-danger @(userLiked)"></i>
+                                            <span>@contadorMeGusta</span>
+                                            <i class="fas fa-grin-hearts text-pink @(userLiked)"></i>
+                                            <span>@contadorMeEncanta</span>
+                                            <i class="fas fa-lightbulb text-purple @(userLiked)"></i>
+                                            <span>@contadorInspirador</span>
+                                            <i class="fas fa-hands-helping text-success @(userLiked)"></i>
+                                            <span>@contadorSolidario</span>
+                                            <i class="fas fa-star text-warning @(userLiked)"></i>
+                                            <span>@contadorAsombroso</span>
+                                        </div>
+                                        @* <div class="historia-stat">
+                                            <i class="fas fa-comment"></i>
+                                            <span>@comentarios.Count</span>
+                                        </div> *@
+                                    </div>
+
+                                    <!-- Botones de interacción -->
+                                    <!-- Reemplaza el botón Me gusta actual con este dropdown de reacciones -->
+                                    <div class="mt-4 action-buttons">
+                                        <div class="btn-group reaction-dropdown dropup">
+                                            <button style="border-radius: 20px;" class="btn @(userLiked ? "btn-danger" : "btn-outline-danger") btn-action reaction-btn"
+                                                    data-historia-id="@historia.Id"
+                                                    data-bs-toggle="dropdown"
+                                                    data-reaccion-actual="@(userLiked ? likes.FirstOrDefault(l => l.Usuario != null && l.IdUsuario == int.Parse(userId))?.TipoReaccion : "")"
+                                                    aria-expanded="false">
+                                                <span class="reaction-text">
+                                                    @if (userLiked)
+                                                    {
+                                                        var tipoReaccionUsuario = likes.FirstOrDefault(l => l.Usuario != null && l.IdUsuario == userIdInt)?.TipoReaccion;
+                                                        switch (tipoReaccionUsuario)
+                                                        {
+                                                            case "MeGusta":
+                                                                <text>Me gusta</text>
+                                                                ; break;
+                                                            case "MeEncanta":
+                                                                <text>Me encanta</text>
+                                                                ; break;
+                                                            case "Inspirador":
+                                                                <text>Inspirador</text>
+                                                                ; break;
+                                                            case "Solidario":
+                                                                <text>Solidario</text>
+                                                                ; break;
+                                                            case "Asombroso":
+                                                                <text>Asombroso</text>
+                                                                ; break;
+                                                            default:
+                                                                <text>Reacción</text>
+                                                                ; break;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>Reacción</text>
+                                                    }
+                                                </span>
+                                                <i class="fas fa-caret-down ms-1"></i>
+                                            </button>
+                                            <div class="dropdown-menu reaction-menu dropdown-menu-end p-2">
+                                                <h6 class="dropdown-header">Elige tu reacción</h6>
+                                                <div class="d-flex justify-content-around reaction-options">
+                                                    <button class="btn-reaction" data-tipo="MeGusta" data-historia-id="@historia.Id" data-color="#dc3545">
+                                                        <i class="fas fa-heart"></i>
+                                                        <span>Me gusta</span>
+                                                    </button>
+                                                    <button class="btn-reaction" data-tipo="MeEncanta" data-historia-id="@historia.Id" data-color="#e83e8c">
+                                                        <i class="fas fa-grin-hearts"></i>
+                                                        <span>Me encanta</span>
+                                                    </button>
+                                                    <button class="btn-reaction" data-tipo="Inspirador" data-historia-id="@historia.Id" data-color="#6f42c1">
+                                                        <i class="fas fa-lightbulb"></i>
+                                                        <span>Inspirador</span>
+                                                    </button>
+                                                    <button class="btn-reaction" data-tipo="Solidario" data-historia-id="@historia.Id" data-color="#198754">
+                                                        <i class="fas fa-hands-helping"></i>
+                                                        <span>Solidario</span>
+                                                    </button>
+                                                    <button class="btn-reaction" data-tipo="Asombroso" data-historia-id="@historia.Id" data-color="#fd7e14">
+                                                        <i class="fas fa-star"></i>
+                                                        <span>Asombroso</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="d-flex justify-content-center mt-5">
+            <nav aria-label="Paginación de historias">
+                <ul class="pagination">
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<style>
+    .dropup .dropdown-menu {
+        top: auto !important;
+        bottom: 55% !important;
+        margin-top: 0;
+        margin-bottom: 0.125rem;
+        transform: translate3d(0, -10px, 0) !important;
+        z-index: 2000 !important; /* Valor alto para que aparezca por encima de otros elementos */
+        position: absolute !important; /* Asegura que el posicionamiento sea absoluto */
+    }
+    /* Estilos para el menú de reacciones */
+    .reaction-dropdown .dropdown-menu {
+        min-width: 280px;
+    }
+
+    .reaction-options {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .btn-reaction {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        min-width: 50px;
+        cursor: pointer;
+    }
+
+        .btn-reaction:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: scale(1.1);
+        }
+
+        .btn-reaction i {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .btn-reaction span {
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+    /* Estilos para el botón activo con la reacción seleccionada */
+    .reaction-btn.MeGusta {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+
+    .reaction-btn.MeEncanta {
+        background-color: #e83e8c;
+        border-color: #e83e8c;
+        color: white;
+    }
+
+    .reaction-btn.Inspirador {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        color: white;
+    }
+
+    .reaction-btn.Solidario {
+        background-color: #198754;
+        border-color: #198754;
+        color: white;
+    }
+
+    .reaction-btn.Asombroso {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+        color: white;
+    }
+    /* Estilos generales */
+    body {
+        font-family: 'Nunito', 'Segoe UI', sans-serif;
+        color: #333;
+        background-color: #f8f9fa;
+    }
+
+    /* Sección de cabecera */
+    #historias-header {
+        position: relative;
+        background: #bab986 !important;
+        color: white;
+        padding: 5rem 0 6rem;
+        margin-bottom: 3rem;
+        overflow: hidden;
+    }
+
+        #historias-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/images/pattern.svg');
+            background-size: cover;
+            opacity: 0.1;
+        }
+
+    .search-box .btn {
+        color: #000039 !important;
+    }
+
+    .title-animated {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-animated::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            bottom: -8px;
+            left: 0;
+            background-color: #fff;
+            transform-origin: center;
+            animation: pulse 2s infinite;
+        }
+
+    @@keyframes pulse {
+        0%
+
+    {
+        transform: scaleX(0.8);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scaleX(0.8);
+        opacity: 0.5;
+    }
+
+    }
+
+    .wave-divider {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        line-height: 0;
+    }
+
+    .search-box {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .filters {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    /* Estadísticas */
+    #stats {
+        margin-top: -1rem;
+        margin-bottom: 2rem;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        z-index: 10;
+        position: relative;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .stat-item {
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+    .stat-icon {
+        font-size: 2rem;
+        color: #007bff;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-counter {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .stat-label {
+        font-size: 1.1rem;
+        color: #6c757d;
+    }
+
+    /* Botón de compartir historia */
+    .share-story-btn {
+        transition: all 0.3s ease;
+        border-radius: 50px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+    }
+
+        .share-story-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,123,255,0.4);
+        }
+
+    /* Estilos para las tarjetas */
+    .historia-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+        .historia-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+    .img-container {
+        position: relative;
+        height: 350px;
+        overflow: hidden;
+    }
+
+    .card-img-left {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .historia-card:hover .card-img-left {
+        transform: scale(1.05);
+    }
+
+    .img-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 50%);
+    }
+
+    .fecha-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background-color: rgba(255,255,255,0.9);
+        color: #333;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 20px;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .card-title {
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #212529;
+    }
+
+    .autor-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .autor-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+        border: 2px solid #e9ecef;
+    }
+
+    .autor-nombre {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .tag {
+        background-color: #e9ecef;
+        color: #495057;
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+        transition: all 0.2s ease;
+    }
+
+        .tag:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+    .stats-row {
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 0;
+    }
+
+    .historia-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+    }
+
+        .historia-stat i {
+            font-size: 1.1rem;
+        }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    /* Sección de comentarios */
+    .comentarios-section {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .comentarios-header {
+        margin-bottom: 1rem;
+    }
+
+    .comentario-user-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .comment-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .comment-text {
+        margin-bottom: 0.5rem;
+    }
+
+    .comment-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Estilos vacíos */
+    .empty-icon {
+        font-size: 4rem;
+        color: #adb5bd;
+    }
+
+    /* Media queries */
+    @@media (max-width: 1110px) {
+        .card
+
+    {
+        max-width: 100%;
+        margin: 0 15px 30px;
+    }
+
+    .card .row {
+        flex-direction: column;
+    }
+
+    .card-img-left {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .personalizado {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .stats-row {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+        .img-container {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+
+    }
+
+    @@media (min-width: 1220px) {
+        .personalizado
+
+    {
+        flex: 0 0 auto;
+        width: 33.3333333%;
+    }
+
+    }
+</style>
+<style>
+    /* Estilos del encabezado mejorado */
+    #historias-header {
+        position: relative;
+        background: linear-gradient(135deg, #007bff 0%, #00c6ff 100%);
+        color: white;
+        padding: 5rem 0 6rem;
+        margin-bottom: 3rem;
+        overflow: hidden;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+        #historias-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/images/pattern.svg');
+            background-size: cover;
+            opacity: 0.1;
+        }
+
+    /* Título animado con el nuevo estilo */
+    .panel-welcome-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+        .panel-welcome-title i {
+            color: #ffffff;
+            margin-right: 10px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+        }
+
+    .panel-welcome-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .title-animated {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-animated::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #fff;
+            transform-origin: center;
+            animation: pulse 2s infinite;
+        }
+
+    /* Huellas decorativas como en el panel de refugio */
+    .decorative-paw {
+        position: absolute;
+        opacity: 0.1;
+        font-size: 10rem;
+        z-index: 0;
+    }
+
+    .decorative-paw-1 {
+        top: -50px;
+        left: -50px;
+        transform: rotate(-20deg);
+    }
+
+    .decorative-paw-2 {
+        bottom: -50px;
+        right: -50px;
+        transform: rotate(20deg);
+    }
+
+    /* Mejoras al cuadro de búsqueda */
+    .search-box {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+        .search-box .form-control {
+            border-radius: 30px 0 0 30px;
+            height: 50px;
+            padding-left: 20px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box .btn {
+            border-radius: 0 30px 30px 0;
+            height: 50px;
+            width: 60px;
+            background: #fff;
+            color: #007bff;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+            .search-box .btn:hover {
+                background: #f0f0f0;
+                color: #0056b3;
+            }
+
+    /* Animación existente */
+    @@keyframes pulse {
+        0% {
+            transform: scaleX(0.8);
+            opacity: 0.5;
+        }
+
+        50% {
+            transform: scaleX(1);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scaleX(0.8);
+            opacity: 0.5;
+        }
+    }
+
+    /* Divider de ola mejorado */
+    .wave-divider {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        line-height: 0;
+        filter: drop-shadow(0 -2px 5px rgba(0, 0, 0, 0.1));
+    }
+</style>
+<style>
+    /* Estilos mejorados para estadísticas */
+    #stats {
+        margin-top: 0rem;
+        margin-bottom: 2.5rem;
+        background-color: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        z-index: 10;
+        position: relative;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+        transform: translateY(-20px);
+        transition: all 0.4s ease;
+    }
+
+        #stats:hover {
+            transform: translateY(-25px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+
+    .stat-item {
+        padding: 2rem 1.5rem;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        background: linear-gradient(145deg, #ffffff, #f5f5f5);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    }
+
+        .stat-item:hover {
+            transform: translateY(-10px);
+            background: linear-gradient(145deg, #f8f9fa, #ffffff);
+            box-shadow: 0 10px 25px rgba(0,123,255,0.1);
+        }
+
+    .stat-icon-container {
+        position: relative;
+        display: inline-block;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #00c6ff);
+        margin-bottom: 1rem;
+        box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .stat-counter {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #333;
+        margin-bottom: 0.3rem;
+        text-shadow: 2px 2px 3px rgba(0,0,0,0.05);
+        font-family: 'Nunito', 'Segoe UI', sans-serif;
+    }
+
+    .stat-label {
+        font-size: 1.2rem;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    /* Animaciones para los iconos */
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+
+    .bounce-animation {
+        animation: bounce 2s infinite;
+    }
+
+    .float-animation {
+        animation: float 3s infinite;
+    }
+
+    @@keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.2);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @@keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @@keyframes float {
+        0%, 100% {
+            transform: translateY(0) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-8px) rotate(5deg);
+        }
+    }
+
+    /* Estilos mejorados para el botón de compartir historia */
+    .share-story-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 50px;
+        padding: 1rem 2.5rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        background: linear-gradient(45deg, #007bff, #00c6ff);
+        border: none;
+        box-shadow: 0 10px 20px rgba(0,123,255,0.3);
+        z-index: 1;
+    }
+
+        .share-story-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,123,255,0.4);
+            background: linear-gradient(45deg, #0069d9, #00b8f5);
+        }
+
+        .share-story-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+    .btn-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-shine {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient( to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100% );
+        transform: rotate(30deg);
+        transition: 0.5s;
+        opacity: 0;
+    }
+
+    .share-story-btn:hover .btn-shine {
+        animation: shine 1.5s ease-in-out;
+    }
+
+    @@keyframes shine {
+        0% {
+            left: -50%;
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            left: 150%;
+            opacity: 0;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+                // Configuración de paginación
+        const HISTORIAS_POR_PAGINA = 3;
+        let paginaActual = 1;
+        let historiasVisibles = []; // Array para almacenar solo las historias que coinciden con el filtro de búsqueda
+
+        // Función para inicializar la paginación
+        function inicializarPaginacion() {
+            // Obtener todas las tarjetas de historias
+            const todasLasHistorias = document.querySelectorAll('.historia-card');
+
+            // Actualizar las historias visibles (todas al inicio)
+            historiasVisibles = Array.from(todasLasHistorias);
+
+            // Calcular el número total de páginas
+            const totalPaginas = Math.ceil(historiasVisibles.length / HISTORIAS_POR_PAGINA);
+
+            // Generar los botones de paginación
+            generarBotonesPaginacion(totalPaginas);
+
+            // Mostrar la primera página
+            mostrarPagina(1);
+        }
+
+        // Función para generar los botones de paginación
+        function generarBotonesPaginacion(totalPaginas) {
+            const paginacionUl = document.querySelector('.pagination');
+
+            // Limpiar la paginación actual
+            paginacionUl.innerHTML = '';
+
+            // Botón "Anterior"
+            const liAnterior = document.createElement('li');
+            liAnterior.className = 'page-item' + (paginaActual === 1 ? ' disabled' : '');
+            liAnterior.innerHTML = `<a class="page-link" href="#" aria-label="Anterior" data-page="prev">
+                                     <span aria-hidden="true">&laquo;</span>
+                                     <span class="sr-only">Anterior</span>
+                                   </a>`;
+            paginacionUl.appendChild(liAnterior);
+
+            // Botones de página
+            for (let i = 1; i <= totalPaginas; i++) {
+                const li = document.createElement('li');
+                li.className = 'page-item' + (i === paginaActual ? ' active' : '');
+                li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                paginacionUl.appendChild(li);
+            }
+
+            // Botón "Siguiente"
+            const liSiguiente = document.createElement('li');
+            liSiguiente.className = 'page-item' + (paginaActual === totalPaginas ? ' disabled' : '');
+            liSiguiente.innerHTML = `<a class="page-link" href="#" aria-label="Siguiente" data-page="next">
+                                      <span aria-hidden="true">&raquo;</span>
+                                      <span class="sr-only">Siguiente</span>
+                                    </a>`;
+            paginacionUl.appendChild(liSiguiente);
+
+            // Agregar eventos a los botones de paginación
+            document.querySelectorAll('.pagination .page-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageAction = this.getAttribute('data-page');
+
+                    if (pageAction === 'prev') {
+                        if (paginaActual > 1) {
+                            mostrarPagina(paginaActual - 1);
+                        }
+                    } else if (pageAction === 'next') {
+                        const totalPaginas = Math.ceil(historiasVisibles.length / HISTORIAS_POR_PAGINA);
+                        if (paginaActual < totalPaginas) {
+                            mostrarPagina(paginaActual + 1);
+                        }
+                    } else {
+                        mostrarPagina(parseInt(pageAction));
+                    }
+                });
+            });
+        }
+
+        // Función para mostrar una página específica
+        function mostrarPagina(numeroPagina) {
+            // Actualizar página actual
+            paginaActual = numeroPagina;
+
+            // Calcular índices de inicio y fin para esta página
+            const inicio = (paginaActual - 1) * HISTORIAS_POR_PAGINA;
+            const fin = inicio + HISTORIAS_POR_PAGINA;
+
+            // Ocultar todas las historias primero
+            document.querySelectorAll('.historia-card').forEach(card => {
+                card.style.display = 'none';
+            });
+
+            // Mostrar solo las historias de la página actual
+            for (let i = inicio; i < fin && i < historiasVisibles.length; i++) {
+                historiasVisibles[i].style.display = 'flex';
+            }
+
+            // Actualizar los botones de paginación
+            actualizarEstadoPaginacion();
+
+            // Desplazarse al principio de la sección de historias
+            //document.querySelector('#historias-contenido').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Función para actualizar el estado de los botones de paginación
+        function actualizarEstadoPaginacion() {
+            const totalPaginas = Math.ceil(historiasVisibles.length / HISTORIAS_POR_PAGINA);
+
+            // Actualizar el estado activo de los botones de página
+            document.querySelectorAll('.pagination .page-item').forEach(item => {
+                item.classList.remove('active', 'disabled');
+            });
+
+            // Marcar la página actual como activa
+            const paginaActualBtn = document.querySelector(`.pagination .page-link[data-page="${paginaActual}"]`);
+            if (paginaActualBtn) {
+                paginaActualBtn.parentElement.classList.add('active');
+            }
+
+            // Deshabilitar botón "Anterior" si estamos en la primera página
+            const btnAnterior = document.querySelector('.pagination .page-link[data-page="prev"]');
+            if (btnAnterior && paginaActual === 1) {
+                btnAnterior.parentElement.classList.add('disabled');
+            }
+
+            // Deshabilitar botón "Siguiente" si estamos en la última página
+            const btnSiguiente = document.querySelector('.pagination .page-link[data-page="next"]');
+            if (btnSiguiente && paginaActual === totalPaginas) {
+                btnSiguiente.parentElement.classList.add('disabled');
+            }
+        }
+
+                // Función para filtrar historias (conserva esta y elimina la segunda definición)
+        function filtrarHistorias() {
+            // Obtener el valor del campo de búsqueda
+            const textoBusqueda = document.getElementById('buscar-historias').value.toLowerCase().trim();
+
+            // Obtener todas las tarjetas de historias
+            const todasLasHistorias = document.querySelectorAll('.historia-card');
+
+            // Resetear el array de historias visibles
+            historiasVisibles = [];
+
+            // Iterar por cada tarjeta y agregar al array de visibles si coincide
+            todasLasHistorias.forEach(card => {
+                // Obtener el título de la historia
+                const titulo = card.querySelector('.card-title').textContent.toLowerCase();
+
+                // Verificar si el título contiene el texto de búsqueda
+                if (textoBusqueda === '' || titulo.includes(textoBusqueda)) {
+                    historiasVisibles.push(card);
+                    // Nota: No cambiar display aquí, se hará en mostrarPagina()
+                }
+            });
+
+            // Mostrar mensaje si no hay resultados
+            const noResultados = document.getElementById('no-resultados');
+            if (historiasVisibles.length === 0 && textoBusqueda !== '') {
+                // Ocultar todas las historias primero
+                todasLasHistorias.forEach(card => {
+                    card.style.display = 'none';
+                });
+
+                // Crear el elemento si no existe
+                if (!noResultados) {
+                    const mensajeNoResultados = document.createElement('div');
+                    mensajeNoResultados.id = 'no-resultados';
+                    mensajeNoResultados.className = 'text-center py-5';
+                    mensajeNoResultados.innerHTML = `
+                        <i class="fas fa-search empty-icon"></i>
+                        <h3 class="mt-3">No se encontraron resultados</h3>
+                        <p>No hay historias que coincidan con "<span id="termino-busqueda">${textoBusqueda}</span>"</p>
+                        <button class="btn btn-outline-primary mt-3" onclick="limpiarBusqueda()">
+                            <i class="fas fa-undo-alt me-2"></i>Ver todas las historias
+                        </button>
+                    `;
+                    document.querySelector('.historias-exito').appendChild(mensajeNoResultados);
+                } else {
+                    // Actualizar el término de búsqueda si ya existe el mensaje
+                    document.getElementById('termino-busqueda').textContent = textoBusqueda;
+                    noResultados.style.display = 'block';
+                }
+
+                // Ocultar paginación cuando no hay resultados
+                document.querySelector('nav[aria-label="Paginación de historias"]').style.display = 'none';
+            } else {
+                // Ocultar mensaje de no resultados
+                if (noResultados) {
+                    noResultados.style.display = 'none';
+                }
+
+                // Mostrar paginación
+                document.querySelector('nav[aria-label="Paginación de historias"]').style.display = 'block';
+
+                // Recalcular paginación con las historias visibles
+                const totalPaginas = Math.ceil(historiasVisibles.length / HISTORIAS_POR_PAGINA);
+                generarBotonesPaginacion(totalPaginas);
+
+                // Resetear a primera página tras buscar
+                paginaActual = 1;
+                mostrarPagina(1);
+            }
+
+            // Actualizar contador de historias en el área de estadísticas
+            const historiasCounter = document.querySelector('.stat-counter:last-child');
+            if (historiasCounter) {
+                historiasCounter.textContent = historiasVisibles.length;
+            }
+        }
+
+        // Función para limpiar la búsqueda
+        function limpiarBusqueda() {
+            // Limpiar el campo de búsqueda
+            document.getElementById('buscar-historias').value = '';
+
+            // Obtener todas las tarjetas de historias
+            const todasLasHistorias = document.querySelectorAll('.historia-card');
+
+            // Resetear el array de historias visibles (todas las historias)
+            historiasVisibles = Array.from(todasLasHistorias);
+
+            // Ocultar mensaje de no resultados si existe
+            const noResultados = document.getElementById('no-resultados');
+            if (noResultados) {
+                noResultados.style.display = 'none';
+            }
+
+            // Mostrar paginación
+            document.querySelector('nav[aria-label="Paginación de historias"]').style.display = 'block';
+
+            // Recalcular paginación
+            const totalPaginas = Math.ceil(historiasVisibles.length / HISTORIAS_POR_PAGINA);
+            generarBotonesPaginacion(totalPaginas);
+
+            // Mostrar primera página
+            mostrarPagina(1);
+
+            // Restaurar contador original de historias
+            const historiasCounter = document.querySelector('.stat-counter:last-child');
+            if (historiasCounter) {
+                historiasCounter.textContent = todasLasHistorias.length;
+            }
+        }
+
+        // Inicializar cuando se cargue el documento
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar paginación
+            inicializarPaginacion();
+
+            // Obtener el campo de búsqueda y el botón
+            const campoBusqueda = document.getElementById('buscar-historias');
+            const botonBusqueda = document.getElementById('boton-buscar');
+
+            // Agregar evento al botón de búsqueda
+            if (botonBusqueda) {
+                botonBusqueda.addEventListener('click', filtrarHistorias);
+            }
+
+            // Agregar evento para buscar al presionar Enter en el campo de búsqueda
+            if (campoBusqueda) {
+                campoBusqueda.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        filtrarHistorias();
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+
+        // Animación de contador
+        document.addEventListener('DOMContentLoaded', function() {
+            const counters = document.querySelectorAll('.stat-counter');
+
+            counters.forEach(counter => {
+                const target = parseInt(counter.innerText);
+                let count = 0;
+                const duration = 2000; // 2 segundos
+                const increment = target / (duration / 20); // incremento cada 20ms
+
+                counter.innerText = '0';
+
+                const timer = setInterval(() => {
+                    count += increment;
+                    if (count >= target) {
+                        clearInterval(timer);
+                        counter.innerText = target;
+                    } else {
+                        counter.innerText = Math.round(count);
+                    }
+                }, 20);
+            });
+        });
+    </script>
+    <script>
+                // Función para inicializar botones de reacción
+        function inicializarBotonesReaccion() {
+            // Obtener todos los botones de reacción
+            const botonesReaccion = document.querySelectorAll('.btn-reaction');
+
+            botonesReaccion.forEach(boton => {
+                boton.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Obtener datos del botón
+                    const historiaId = this.getAttribute('data-historia-id');
+                    const tipoReaccion = this.getAttribute('data-tipo');
+                    const color = this.getAttribute('data-color');
+
+                    // Enviar la solicitud AJAX
+                    reaccionarHistoria(historiaId, tipoReaccion, color, this);
+                });
+            });
+        }
+
+        // Función para inicializar los botones de reacción con el estado correcto
+        async function inicializarEstadoBotonesReaccion() {
+            // Obtener todos los botones de reacción principal
+            const botonesReaccion = document.querySelectorAll('.reaction-btn');
+
+            // Verificar si el usuario está autenticado
+            if (!document.querySelector('input[name="__RequestVerificationToken"]')) {
+                return; // No hay token, usuario no autenticado
+            }
+
+            for (const boton of botonesReaccion) {
+                const historiaId = boton.getAttribute('data-historia-id');
+
+                // Consultar al servidor para obtener el estado de reacción actual
+                const tipoReaccion = await verificarEstadoReaccion(historiaId);
+
+                // Si hay una reacción actual, aplicar el estilo correspondiente
+                if (tipoReaccion && tipoReaccion !== '') {
+                    // Actualizar el atributo data-reaccion-actual
+                    boton.setAttribute('data-reaccion-actual', tipoReaccion);
+
+                    // Aplicar estilo al botón según tipo de reacción
+                    aplicarEstiloSegunReaccion(boton, tipoReaccion);
+                }
+            }
+        }
+
+        // Función para aplicar estilo según el tipo de reacción
+        function aplicarEstiloSegunReaccion(boton, tipoReaccion) {
+            // Primero quitar todas las clases de colores previas
+            boton.classList.remove('btn-danger', 'btn-outline-danger', 'btn-pink', 'btn-purple', 'btn-success', 'btn-warning');
+
+            // Aplicar clase según tipo de reacción
+            switch (tipoReaccion) {
+                case 'MeGusta':
+                    boton.classList.add('btn-danger');
+                    boton.innerHTML = `<i class="fas fa-heart me-1"></i> <span class="reaction-text">Me gusta</span>`;
+                    break;
+                case 'MeEncanta':
+                    boton.classList.add('btn-pink');
+                    boton.innerHTML = `<i class="fas fa-grin-hearts me-1"></i> <span class="reaction-text">Me encanta</span>`;
+                    break;
+                case 'Inspirador':
+                    boton.classList.add('btn-purple');
+                    boton.innerHTML = `<i class="fas fa-lightbulb me-1"></i> <span class="reaction-text">Inspirador</span>`;
+                    break;
+                case 'Solidario':
+                    boton.classList.add('btn-success');
+                    boton.innerHTML = `<i class="fas fa-hands-helping me-1"></i> <span class="reaction-text">Solidario</span>`;
+                    break;
+                case 'Asombroso':
+                    boton.classList.add('btn-warning');
+                    boton.innerHTML = `<i class="fas fa-star me-1"></i> <span class="reaction-text">Asombroso</span>`;
+                    break;
+                default:
+                    boton.classList.add('btn-outline-danger');
+                    boton.innerHTML = `<span class="reaction-text">Reacción</span> <i class="fas fa-caret-down ms-1"></i>`;
+                    break;
+            }
+        }
+
+        // Función para verificar el estado de la reacción desde el servidor
+        async function verificarEstadoReaccion(historiaId) {
+            // Crear un FormData y añadir los datos necesarios
+            const formData = new FormData();
+            formData.append('idHistoria', historiaId);
+
+            // Obtener el token para la solicitud
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenElement) {
+                formData.append('__RequestVerificationToken', tokenElement.value);
+            } else {
+                return null; // No hay token, posiblemente usuario no autenticado
+            }
+
+            try {
+                // Realizar petición AJAX
+                const response = await fetch('/Adoptante/ObtenerEstadoReaccion', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    return data.tipoReaccion;
+                } else {
+                    console.error('Error al obtener estado de reacción:', data.message);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error en la petición AJAX:', error);
+                return null;
+            }
+        }
+
+        // Función para enviar la reacción por AJAX
+        function reaccionarHistoria(historiaId, tipoReaccion, color, botonClicado) {
+            // Crear un FormData y añadir los datos necesarios
+            const formData = new FormData();
+            formData.append('idHistoria', historiaId);
+            formData.append('tipoReaccion', tipoReaccion);
+
+            // Obtener el token para la solicitud
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenElement) {
+                formData.append('__RequestVerificationToken', tokenElement.value);
+            }
+
+            // Realizar petición AJAX
+            fetch('/Adoptante/ReaccionarHistoria', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Obtener el botón principal de reacción para esta historia
+                    const dropdownBtn = document.querySelector(`.reaction-btn[data-historia-id="${historiaId}"]`);
+
+                    // Cerrar el dropdown después de seleccionar una reacción
+                    const bootstrap = window.bootstrap;
+                    const dropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
+                    if (dropdown) {
+                        dropdown.hide();
+                    }
+
+                    // Actualizar contadores de reacción en la interfaz
+                    actualizarContadoresReaccion(historiaId, data.contadores);
+
+                    // Cambiar la apariencia del botón de reacción principal
+                    if (data.accion === "eliminado") {
+                        // Restaurar estilo por defecto
+                        dropdownBtn.classList.remove('btn-danger', 'btn-pink', 'btn-purple', 'btn-success', 'btn-warning');
+                        dropdownBtn.classList.add('btn-outline-danger');
+                        dropdownBtn.innerHTML = `<span class="reaction-text">Reacción</span> <i class="fas fa-caret-down ms-1"></i>`;
+
+                        // Actualizar el atributo de reacción actual
+                        dropdownBtn.setAttribute('data-reaccion-actual', '');
+
+                        // Quitar marca de activo de todos los botones del dropdown
+                        const dropdownButtons = dropdownBtn.closest('.reaction-dropdown')
+                            .querySelectorAll('.btn-reaction');
+                        dropdownButtons.forEach(btn => btn.classList.remove('active'));
+                    } else {
+                        // Aplicar estilo según el tipo de reacción
+                        aplicarEstiloSegunReaccion(dropdownBtn, tipoReaccion);
+
+                        // Actualizar el atributo de reacción actual
+                        dropdownBtn.setAttribute('data-reaccion-actual', tipoReaccion);
+
+                        // Marcar como activo el botón seleccionado y quitar la marca de los demás
+                        const dropdownButtons = dropdownBtn.closest('.reaction-dropdown')
+                            .querySelectorAll('.btn-reaction');
+                        dropdownButtons.forEach(btn => {
+                            if (btn.getAttribute('data-tipo') === tipoReaccion) {
+                                btn.classList.add('active');
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        });
+
+                        darEfectoSeleccionado(botonClicado);
+                    }
+                } else {
+                    console.error('Error al procesar la reacción:', data.message);
+                    alert('No se pudo procesar tu reacción. Por favor, inicia sesión o inténtalo más tarde.');
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición AJAX:', error);
+                alert('Ocurrió un error al procesar tu reacción. Por favor, inténtalo de nuevo más tarde.');
+            });
+        }
+
+        function actualizarContadoresReaccion(historiaId, contadores) {
+            const historiaCard = document.querySelector(`.historia-card[data-id="${historiaId}"]`) ||
+                                 document.querySelector(`.card.historia-card`);
+
+            if (historiaCard) {
+                const statsRow = historiaCard.querySelector('.stats-row .historia-stat:nth-child(2)');
+
+                if (statsRow) {
+                    statsRow.innerHTML = `
+                        <i class="fas fa-heart text-danger"></i><span>${contadores.meGusta || 0}</span>
+                        <i class="fas fa-grin-hearts text-pink"></i><span>${contadores.meEncanta || 0}</span>
+                        <i class="fas fa-lightbulb text-purple"></i><span>${contadores.inspirador || 0}</span>
+                        <i class="fas fa-hands-helping text-success"></i><span>${contadores.solidario || 0}</span>
+                        <i class="fas fa-star text-warning"></i><span>${contadores.asombroso || 0}</span>
+                    `;
+                }
+            }
+        }
+        function darEfectoSeleccionado(boton) {
+            boton.classList.add('selected');
+            setTimeout(() => {
+                boton.classList.remove('selected');
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const campoBusqueda = document.getElementById('buscar-historias');
+            const botonBusqueda = document.getElementById('boton-buscar');
+
+            botonBusqueda.addEventListener('click', filtrarHistorias);
+
+            campoBusqueda.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    filtrarHistorias();
+                }
+            });
+
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarBotonesReaccion();
+            inicializarEstadoBotonesReaccion();
+
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Estilo para los botones de reacción */
+                .btn-reaction.selected {
+                    transform: scale(1.2);
+                    transition: transform 0.2s;
+                }
+                .btn-reaction.active {
+                    background-color: rgba(0,0,0,0.1);
+                    font-weight: bold;
+                }
+                .reaction-options {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                    padding: 8px;
+                }
+                .btn-reaction {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 8px;
+                    border: none;
+                    background: transparent;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .btn-reaction:hover {
+                    background-color: rgba(0,0,0,0.05);
+                    transform: scale(1.05);
+                }
+                .btn-reaction i {
+                    font-size: 1.5rem;
+                    margin-bottom: 5px;
+                }
+                .btn-reaction span {
+                    font-size: 0.8rem;
+                }
+
+                /* Colores para los botones principales */
+                .btn-pink {
+                    background-color: #e83e8c !important;
+                    border-color: #e83e8c !important;
+                    color: white !important;
+                }
+                .btn-purple {
+                    background-color: #6f42c1 !important;
+                    border-color: #6f42c1 !important;
+                    color: white !important;
+                }
+
+                /* Colores para los iconos en los botones de reacción */
+                .btn-reaction[data-tipo="MeGusta"] i {
+                    color: #dc3545;
+                }
+                .btn-reaction[data-tipo="MeEncanta"] i {
+                    color: #e83e8c;
+                }
+                .btn-reaction[data-tipo="Inspirador"] i {
+                    color: #6f42c1;
+                }
+                .btn-reaction[data-tipo="Solidario"] i {
+                    color: #198754;
+                }
+                .btn-reaction[data-tipo="Asombroso"] i {
+                    color: #fd7e14;
+                }
+
+                /* Estilo para el menú desplegable */
+                .reaction-menu {
+                    min-width: 280px;
+                    border-radius: 12px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+                }
+                .dropdown-header {
+                    text-align: center;
+                    font-weight: bold;
+                    color: #495057;
+                    border-bottom: 1px solid #e9ecef;
+                    padding-bottom: 10px;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+}

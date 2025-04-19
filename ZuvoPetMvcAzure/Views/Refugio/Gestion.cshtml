@@ -1,0 +1,495 @@
+﻿@model List<MascotaCard>
+
+@{
+    @Html.AntiForgeryToken()
+
+    // Variables de paginación - Debes definir estas variables en tu controlador
+    var paginaActual = ViewBag.PaginaActual;
+    var totalPaginas = ViewBag.TotalPaginas;
+}
+
+<div class="container-fluid px-4 py-5 pet-adoption-container">
+    <div class="row mb-4">
+        <div class="col-12 d-flex flex-column flex-xl-row justify-content-between align-items-center header-container">
+            <h1 class="pet-page-title mb-3 mb-xl-0">
+                <span class="title-highlight">Animales</span> del
+                <span class="title-highlight">Refugio</span>
+                <span class="title-emoji">🐾</span>
+            </h1>
+            <a asp-controller="Refugio"
+               asp-action="CrearMascota"
+               class="btn btn-success create-pet-btn">
+                <i class="fas fa-plus-circle me-2"></i>Añadir Mascota
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4" id="petGallery">
+        @foreach (var mascota in Model)
+        {
+            var años = mascota.Edad / 12;
+            var meses = mascota.Edad % 12;
+
+            <div class="col-12 col-xl-4 col-lg-6">
+                <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                    <div class="position-relative">
+                        <img src="~/images/@mascota.Foto"
+                             class="card-img-top pet-card-image"
+                             alt="@mascota.Nombre">
+                        <div class="pet-card-overlay">
+                            <div class="pet-card-badges">
+                                <div class="pet-sex-badge @(mascota.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                    <i class="fas @(mascota.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="pet-card-content p-4">
+                            <div class="pet-name-container">
+                                <h4 class="pet-name">
+                                    @mascota.Nombre
+                                </h4>
+                            </div>
+
+                            <div class="pet-characteristics mb-2 mb-sm-3">
+                                <div class="characteristic">
+                                    <div class="characteristic-icon">
+                                        <i class="fas fa-ruler text-primary"></i>
+                                    </div>
+                                    <div class="characteristic-info">
+                                        <span class="label">Tamaño</span>
+                                        <span class="value">@mascota.Tamano</span>
+                                    </div>
+                                </div>
+
+                                <div class="characteristic">
+                                    <div class="characteristic-icon">
+                                        <i class="fas fa-birthday-cake text-success"></i>
+                                    </div>
+                                    <div class="characteristic-info">
+                                        <span class="label">Edad</span>
+                                        <span class="value">
+                                            @if (años > 0 && meses > 0)
+                                            {
+                                                @($"{años} año{(años != 1 ? "s" : "")} y {meses} mes{(meses != 1 ? "es" : "")}")
+                                            }
+                                            else if (años > 0)
+                                            {
+                                                @($"{años} año{(años != 1 ? "s" : "")}")
+                                            }
+                                            else
+                                            {
+                                                @($"{meses} mes{(meses != 1 ? "es" : "")}")
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pet-actions mt-4">
+                                <a asp-controller="Refugio"
+                                   asp-action="DetallesMascota"
+                                   asp-route-idmascota="@mascota.Id"
+                                   class="btn btn-primary w-100 mb-2 d-flex justify-content-center align-items-center">
+                                    <i class="fas fa-info-circle me-1 me-sm-2"></i>
+                                    <span class="btn-text">Más sobre @mascota.Nombre</span>
+                                </a>
+
+                                <!-- Reemplazar la sección de botones Editar/Eliminar -->
+                                <div class="d-flex flex-column flex-sm-row gap-2 mt-2">
+                                    <a asp-controller="Refugio"
+                                       asp-action="EditarMascota"
+                                       asp-route-idmascota="@mascota.Id"
+                                       class="btn btn-warning flex-grow-1 d-flex align-items-center justify-content-center btn-sm">
+                                        <i class="fas fa-edit me-1"></i>
+                                        <span>Editar</span>
+                                    </a>
+
+                                    <button type="button"
+                                            class="btn btn-danger flex-grow-1 d-flex align-items-center justify-content-center btn-sm"
+                                            onclick="confirmarEliminar(@mascota.Id, '@mascota.Nombre')">
+                                        <i class="fas fa-trash-alt me-1"></i>
+                                        <span>Eliminar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- No pets found message remains the same -->
+    @if (!Model.Any())
+    {
+        <div class="text-center mt-5">
+            <h3 class="text-muted">No se encontraron mascotas 😿</h3>
+            <p class="lead">Prueba ajustando tus filtros de búsqueda</p>
+        </div>
+    }
+
+    <!-- Controles de paginación -->
+    @if (Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="pagination-controls d-flex justify-content-center mt-5 mb-5">
+                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(1)" @(paginaActual <= 1 ? "disabled" : "")>
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(@(paginaActual - 1))" @(paginaActual <= 1 ? "disabled" : "")>
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center mx-2">
+                        <i class="fas fa-paw me-1"></i>
+                        <span id="paginaInfo">@paginaActual de @totalPaginas</span>
+                    </span>
+                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@(paginaActual + 1))" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@totalPaginas)" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    @@media (max-width: 1220px) {
+        .header-container
+
+    {
+        flex-direction: column !important;
+    }
+
+    .pet-page-title {
+        margin-bottom: 1rem !important;
+        text-align: center;
+    }
+
+    .create-pet-btn {
+        margin-bottom: 1rem;
+    }
+
+    }
+    /* Page Title Styling */
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #007bff, #00c6ff);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Create Pet Button */
+    .create-pet-btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 30px;
+        box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+        .create-pet-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+        }
+
+    /* Pet Species Badge */
+    .pet-species-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 2rem;
+        background: rgba(255,255,255,0.8);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .pet-sex-badge {
+        font-size: 2rem;
+        background: rgba(255,255,255,0.8);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Pet Name Styling */
+    .pet-name-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .pet-name-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .pet-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #007bff;
+        text-align: center;
+    }
+
+        .pet-name::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 123, 255, 0.2);
+            z-index: -1;
+            transform: rotate(-1deg);
+        }
+
+    .bg-pink {
+        background-color: #ff69b4 !important;
+    }
+
+    .pet-card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .pet-card-image {
+        height: 300px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .pet-card:hover .pet-card-image {
+        transform: scale(1.1);
+    }
+
+    .pet-card-overlay {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .pet-card-badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .pet-characteristics {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+    }
+
+    .characteristic {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .characteristic-icon {
+        background-color: rgba(0, 123, 255, 0.1);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .characteristic-icon i {
+            font-size: 1.5rem;
+        }
+
+    .characteristic-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .characteristic-info .label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .characteristic-info .value {
+            font-weight: bold;
+            color: #333;
+        }
+
+    .pet-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .pet-card .pet-actions {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pet-card .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .pet-card .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+    .pet-name-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px; /* Espacio entre nombre y corazón */
+    }
+
+    /* Pagination controls styling */
+    .pagination-controls .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+        .pagination-controls .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+    .pagination-controls .badge {
+        height: 40px;
+    }
+</style>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Script para la paginación y eliminación de mascotas -->
+<script>
+    function cargarPagina(pagina) {
+        // Obtiene la URL actual
+        let url = window.location.href;
+
+        // Verifica si ya hay un parámetro de página
+        if (url.includes('?pagina=') || url.includes('&pagina=')) {
+            // Reemplaza el parámetro de página existente
+            url = url.replace(/([?&])pagina=\d+/, '$1pagina=' + pagina);
+        } else {
+            // Agrega el parámetro de página como nuevo
+            url += url.includes('?') ? '&pagina=' + pagina : '?pagina=' + pagina;
+        }
+
+        // Redirige a la nueva URL
+        window.location.href = url;
+    }
+
+    function confirmarEliminar(idMascota, nombreMascota) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            html: `¿Realmente deseas eliminar a <strong>${nombreMascota}</strong> del refugio?<br>Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                eliminarMascota(idMascota, nombreMascota);
+            }
+        });
+    }
+
+    function eliminarMascota(idMascota, nombreMascota) {
+        // Obtener el token antiforgery
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    fetch(`/Refugio/EliminarMascota/${idMascota}`, {
+        method: 'POST',
+        headers: {
+            'RequestVerificationToken': token
+        }
+    })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: `${nombreMascota} ha sido eliminado del refugio.`,
+                    icon: 'success'
+                }).then(() => {
+                    // Recargar la página para reflejar los cambios
+                    location.reload();
+                });
+            } else {
+                throw new Error('Error al eliminar la mascota');
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo eliminar la mascota. Por favor, inténtalo de nuevo.',
+                icon: 'error'
+            });
+            console.error('Error:', error);
+        });
+    }
+</script>

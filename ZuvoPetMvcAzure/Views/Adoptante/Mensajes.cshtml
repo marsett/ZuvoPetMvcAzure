@@ -1,0 +1,395 @@
+﻿@model List<ConversacionViewModel>
+@{
+    ViewData["Title"] = "Mis conversaciones";
+}
+<section id="historias-header" class="position-relative">
+    <div class="decorative-paw decorative-paw-1">💬</div>
+    <div class="decorative-paw decorative-paw-2">💬</div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto text-center py-4">
+                <h1 class="panel-welcome-title">
+                    <i class="fas fa-envelope-open-text text-white me-3"></i> <span class="title-animated">Mis mensajes</span>
+                </h1>
+                <p class="panel-welcome-subtitle">Mantente conectado con tus contactos recientes</p>
+
+            </div>
+        </div>
+    </div>
+    <div class="wave-divider">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100">
+            <path fill="#ffffff" fill-opacity="1" d="M0,32L60,42.7C120,53,240,75,360,74.7C480,75,600,53,720,42.7C840,32,960,32,1080,42.7C1200,53,1320,75,1380,85.3L1440,96L1440,100L1380,100C1320,100,1200,100,1080,100C960,100,840,100,720,100C600,100,480,100,360,100C240,100,120,100,60,100L0,100Z"></path>
+        </svg>
+    </div>
+</section>
+<div class="conversations-enhanced-container">
+    
+
+    <div class="conversations-wrapper">
+        @if (Model.Count == 0)
+        {
+            <div class="no-conversations-state">
+                <div class="no-conversations-icon">
+                    <i class="fas fa-comment-slash"></i>
+                </div>
+                <h3>No hay conversaciones</h3>
+                <p>Parece que aún no tienes conversaciones activas.</p>
+                <a asp-controller="Adoptante" asp-action="Refugios" class="btn btn-primary start-conversation-btn">
+                    <i class="fas fa-paw me-2"></i>Iniciar Conversación con Refugio
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="conversations-list">
+                @foreach (var conversacion in Model)
+                {
+                    <div class="conversation-card">
+                        <div class="conversation-avatar">
+                            <img src="~/images/@conversacion.Foto" alt="@conversacion.NombreUsuario" />
+                            @if (conversacion.NoLeidos > 0)
+                            {
+                                <span class="unread-badge">@conversacion.NoLeidos</span>
+                            }
+                        </div>
+                        <a href="@Url.Action("Chat", new { id = conversacion.UsuarioId })" class="conversation-details">
+                            <div class="conversation-header">
+                                <h4 class="conversation-name">@conversacion.NombreUsuario</h4>
+                                <span class="conversation-timestamp">
+                                    @conversacion.FechaUltimoMensaje.ToString("dd/MM HH:mm")
+                                </span>
+                            </div>
+                            <p class="conversation-preview">
+                                @conversacion.UltimoMensaje
+                            </p>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .conversations-enhanced-container {
+        max-width: 100%;
+        margin: 2rem auto;
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .conversations-header {
+        background: linear-gradient(135deg, #007bff, #00c6ff);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .conversations-title {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .conversations-subtitle {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.9rem;
+    }
+
+    .conversations-wrapper {
+        padding: 1rem;
+    }
+
+    .no-conversations-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    .no-conversations-icon {
+        font-size: 5rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    .start-conversation-btn {
+        margin-top: 1rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+    }
+
+    .conversations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .conversation-card {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+        .conversation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #007bff;
+        }
+
+    .conversation-avatar {
+        position: relative;
+        margin-right: 1rem;
+    }
+
+        .conversation-avatar img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+        }
+
+    .unread-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 3px 8px;
+        font-size: 0.7rem;
+    }
+
+    .conversation-details {
+        flex-grow: 1;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .conversation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .conversation-name {
+        font-size: 1.1rem;
+        color: #007bff;
+        margin: 0;
+    }
+
+    .conversation-timestamp {
+        color: #6c757d;
+    }
+
+    .conversation-preview {
+        color: #6c757d;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 300px;
+    }
+
+    .conversation-actions {
+        margin-left: 1rem;
+    }
+
+    .btn-conversation-action {
+        background: none;
+        border: none;
+        color: #6c757d;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-conversation-action:hover {
+            background-color: #f1f3f5;
+        }
+
+    @@media (max-width: 600px) {
+        .conversations-enhanced-container
+
+    {
+        margin: 1rem;
+        border-radius: 12px;
+    }
+
+    .conversation-card {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+
+    .conversation-avatar {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .conversation-header {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .conversation-timestamp {
+        margin-top: 0.5rem;
+    }
+
+    }
+</style>
+<style>
+    /* Estilos del encabezado mejorado */
+    #historias-header {
+        position: relative;
+        background: #bab986 !important;
+        color: white;
+        padding: 5rem 0 6rem;
+        margin-bottom: 3rem;
+        overflow: hidden;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+        #historias-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/images/pattern.svg');
+            background-size: cover;
+            opacity: 0.1;
+        }
+
+    /* Título animado con el nuevo estilo */
+    .panel-welcome-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+        .panel-welcome-title i {
+            color: #ffffff;
+            margin-right: 10px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+        }
+
+    .panel-welcome-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .title-animated {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-animated::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #fff;
+            transform-origin: center;
+            animation: pulse 2s infinite;
+        }
+
+    /* Huellas decorativas como en el panel de refugio */
+    .decorative-paw {
+        position: absolute;
+        opacity: 0.1;
+        font-size: 10rem;
+        z-index: 0;
+    }
+
+    .decorative-paw-1 {
+        top: -50px;
+        left: -50px;
+        transform: rotate(-20deg);
+    }
+
+    .decorative-paw-2 {
+        bottom: -50px;
+        right: -50px;
+        transform: rotate(20deg);
+    }
+
+    /* Mejoras al cuadro de búsqueda */
+    .search-box {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+        .search-box .form-control {
+            border-radius: 30px 0 0 30px;
+            height: 50px;
+            padding-left: 20px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box .btn {
+            border-radius: 0 30px 30px 0;
+            height: 50px;
+            width: 60px;
+            background: #fff;
+            color: #007bff;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+            .search-box .btn:hover {
+                background: #f0f0f0;
+                color: #0056b3;
+            }
+
+    /* Animación existente */
+    @@keyframes pulse {
+        0% {
+            transform: scaleX(0.8);
+            opacity: 0.5;
+        }
+
+        50% {
+            transform: scaleX(1);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scaleX(0.8);
+            opacity: 0.5;
+        }
+    }
+
+    /* Divider de ola mejorado */
+    .wave-divider {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        line-height: 0;
+        filter: drop-shadow(0 -2px 5px rgba(0, 0, 0, 0.1));
+    }
+</style>

@@ -1,0 +1,974 @@
+﻿@model VistaPerfilRefugio
+
+@{
+    ViewData["Title"] = "Perfil del Refugio";
+    @Html.AntiForgeryToken()
+    ;
+}
+
+<div class="container py-5">
+    <div class="bg-white shadow rounded-4 mb-4 overflow-hidden">
+        <!-- Banner superior con temática de mascotas mejorado -->
+        <div class="position-relative" style="height: 240px; background: #bab986 !important;">
+
+            <!-- Imagen de perfil con borde mejorado -->
+            <img src="~/images/@Model.FotoPerfil" alt="Foto de Perfil"
+                 class="border-4 border-white shadow-lg"
+                 style="width: 250px; height: 250px; object-fit: cover; background-color: #f8f9fa; border-radius: 24px;
+                 margin: 20px; position: relative; z-index: 5; transition: transform 0.3s ease;">
+            <form asp-action="SubirFichero" method="post" enctype="multipart/form-data" id="uploadForm">
+                <label for="fotoInput" class="position-absolute bg-white shadow-lg rounded-circle p-2 d-flex align-items-center justify-content-center"
+                       style="top: 10px; left: 250px; width: 44px; height: 44px; cursor: pointer; border: 2px solid #3e3e53; z-index: 6; transition: all 0.3s ease;">
+                    <i class="fas fa-camera" style="color: #3e3e53;"></i>
+                </label>
+                <input type="file" id="fotoInput" name="fichero" accept="image/*" style="display: none;" />
+            </form>
+        </div>
+
+        <!-- Contenedor principal con diseño mejorado -->
+        <div class="container-fluid px-4 pb-4" style="margin-top: 70px;">
+            <div class="row mt-4 gy-4">
+                <!-- COLUMNA 1: Nombre y estadísticas -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <h2 class="fw-bold mb-4 text-center text-lg-start" style="color: #3e3e53;">@Model.NombreRefugio</h2>
+
+                            <!-- Estadísticas en formato de tarjetas horizontales -->
+                            <div class="row g-3">
+                                <div class="col-xl-6">
+                                    <div class="bg-light rounded-4 p-3 h-100 d-flex align-items-center border border-success border-opacity-25 hover-scale">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                                            <i class="fas fa-paw text-primary fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-primary">@Model.CantidadAnimales</div>
+                                            <div class="text-muted small">Animales actuales</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-6">
+                                    <div class="bg-light rounded-4 p-3 h-100 d-flex align-items-center border border-warning border-opacity-25 hover-scale">
+                                        <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                                            <i class="fas fa-house-chimney text-warning fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-warning">@Model.CapacidadMaxima</div>
+                                            <div class="text-muted small">Capacidad máxima</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Sobre el Refugio section -->
+                                <div class="card-body p-4 mt-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="card-title fw-bold mb-0">
+                                            Sobre el Refugio
+                                        </h5>
+                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm hover-scale" data-bs-toggle="modal" data-bs-target="#editSobreMiModal">
+                                            <i class="fas fa-edit text-primary"></i>
+                                        </button>
+                                    </div>
+                                    <div class="p-3 rounded-4 bg-light">
+                                        <p class="card-text @(string.IsNullOrEmpty(Model.Descripcion) ? "text-muted fst-italic" : "")">
+                                            @(string.IsNullOrEmpty(Model.Descripcion) ? "Agrega una descripción para que los posibles adoptantes conozcan mejor tu refugio..." : Model.Descripcion)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 2: Usuario, email y botón editar -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column justify-content-between h-100">
+                                <div>
+                                    <h4 class="mb-4 fw-semibold" style="color: #3e3e53;">
+                                        <i class="fas fa-address-card me-2"></i>Información de contacto
+                                    </h4>
+                                    <div class="d-flex flex-column gap-3 mb-4">
+                                        <div class="d-flex align-items-center p-3 border-bottom border-success border-opacity-25 rounded-3 bg-light hover-scale">
+                                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-user text-success"></i>
+                                            </div>
+                                            <span class="fs-6">@Model.NombreUsuario</span>
+                                        </div>
+                                        <div class="d-flex align-items-center p-3 border-bottom border-primary border-opacity-25 rounded-3 bg-light hover-scale">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                                <i class="fas fa-envelope text-primary"></i>
+                                            </div>
+                                            <span class="fs-6 text-truncate">@Model.Email</span>
+                                        </div>
+                                        <div class="d-flex align-items-center p-3 border-bottom border-info border-opacity-25 rounded-3 bg-light hover-scale">
+                                            <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-phone text-info"></i>
+                                            </div>
+                                            <span class="fs-6">@Model.ContactoRefugio</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn btn-primary btn-lg rounded-pill shadow px-4 py-2 hover-lift" data-bs-toggle="modal" data-bs-target="#editPerfilModal">
+                                        <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="section-container mb-4 p-4 rounded-4 animate-section bg-white shadow-sm" style="opacity: 0; transition: opacity 0.5s ease, transform 0.5s ease; transform: translateY(20px);">
+            <form method="post" asp-action="ActualizarUbicacionRefugio">
+                <h3 class="section-title mb-4" style="color: #3e3e53;">
+                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación del Refugio
+                </h3>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="mapa" style="height: 350px; border-radius: 18px;" class="border rounded shadow-sm hover-lift"></div>
+                        <p class="text-center text-muted mt-2 fst-italic"><small><i class="fas fa-info-circle me-1"></i>Haz clic en el mapa para establecer la ubicación del refugio</small></p>
+                    </div>
+                </div>
+                <div class="row mt-3" style="display: none;">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Latitud" type="number" step="any" class="form-control" id="Latitud" placeholder="Latitud" />
+                            <label asp-for="Latitud">Latitud</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Longitud" type="number" step="any" class="form-control" id="Longitud" placeholder="Longitud" />
+                            <label asp-for="Longitud">Longitud</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Campos de visualización para el usuario -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input type="text" id="LatitudDisplay" class="form-control bg-light" placeholder="Latitud" readonly />
+                            <label for="LatitudDisplay">Latitud</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input type="text" id="LongitudDisplay" class="form-control bg-light" placeholder="Longitud" readonly />
+                            <label for="LongitudDisplay">Longitud</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info rounded-4 mt-2">
+                    <p id="ubicacion-status" class="text-center mb-0">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        Haz clic en el mapa para seleccionar la ubicación del refugio
+                    </p>
+                </div>
+                <div class="text-center mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 py-2 shadow hover-lift">
+                        <i class="fas fa-save me-2"></i>Guardar Ubicación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar "Perfil" -->
+<div class="modal fade" id="editPerfilModal" tabindex="-1" aria-labelledby="editPerfilModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white" style="border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title" id="editPerfilModalLabel">
+                    <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-action="ActualizarPerfil">
+                    <div class="mb-3">
+                        <label for="NombreRefugio" class="form-label fw-semibold">Nombre del Refugio</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-home text-primary"></i></span>
+                            <input type="text" class="form-control border-0 bg-light rounded-end-4" id="NombreRefugio" name="NombreRefugio" value="@Model.NombreRefugio" required>
+                        </div>
+                        <span asp-validation-for="NombreRefugio" class="text-danger"></span>
+                    </div>
+                    <div class="mb-4">
+                        <label for="Email" class="form-label fw-semibold">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-envelope text-primary"></i></span>
+                            <input type="email" class="form-control border-0 bg-light rounded-end-4" id="Email" name="Email" value="@Model.Email" required>
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="mb-4">
+                        <label for="ContactoRefugio" class="form-label fw-semibold">Teléfono de Contacto</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-phone text-primary"></i></span>
+                            <input type="text" class="form-control border-0 bg-light rounded-end-4" id="ContactoRefugio" name="ContactoRefugio" value="@Model.ContactoRefugio" required>
+                        </div>
+                        <span asp-validation-for="ContactoRefugio" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 shadow hover-lift">
+                            <i class="fas fa-save me-2"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar "Sobre el Refugio" -->
+<div class="modal fade" id="editSobreMiModal" tabindex="-1" aria-labelledby="editSobreMiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white" style="border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title" id="editSobreMiModalLabel">
+                    <i class="fas fa-edit me-2"></i>Editar Sobre el Refugio
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-action="ActualizarDescripcion">
+                    <div class="mb-4">
+                        <label for="Descripcion" class="form-label fw-semibold">Descripción</label>
+                        <textarea class="form-control border-0 bg-light rounded-4" id="Descripcion" name="Descripcion" rows="6"
+                                  placeholder="Cuéntanos sobre tu refugio, su historia, misión, actividades...">@Model.Descripcion</textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 shadow hover-lift">
+                            <i class="fas fa-save me-2"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar "Detalles del Refugio" -->
+<div class="modal fade" id="editDetallesModal" tabindex="-1" aria-labelledby="editDetallesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white" style="border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title" id="editDetallesModalLabel">
+                    <i class="fas fa-house-user me-2"></i>Editar Detalles del Refugio
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-action="ActualizarDetalles">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="ContactoRefugio" class="form-label fw-semibold">Teléfono de Contacto</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-phone text-primary"></i></span>
+                                <input type="text" class="form-control border-0 bg-light rounded-end-4" id="ContactoRefugio" name="ContactoRefugio" value="@Model.ContactoRefugio">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="CantidadAnimales" class="form-label fw-semibold">Cantidad Actual</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-paw text-primary"></i></span>
+                                <input type="number" class="form-control border-0 bg-light rounded-end-4" id="CantidadAnimales" name="CantidadAnimales" value="@Model.CantidadAnimales">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="CapacidadMaxima" class="form-label fw-semibold">Capacidad Máxima</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-house-chimney text-primary"></i></span>
+                                <input type="number" class="form-control border-0 bg-light rounded-end-4" id="CapacidadMaxima" name="CapacidadMaxima" value="@Model.CapacidadMaxima">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Ubicación (Coordenadas)</label>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="Latitud" class="form-label">Latitud</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-map-marker-alt text-primary"></i></span>
+                                <input type="text" class="form-control border-0 bg-light rounded-end-4" id="Latitud" name="Latitud" value="@Model.Latitud">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="Longitud" class="form-label">Longitud</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fas fa-map-marker-alt text-primary"></i></span>
+                                <input type="text" class="form-control border-0 bg-light rounded-end-4" id="Longitud" name="Longitud" value="@Model.Longitud">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 shadow hover-lift">
+                            <i class="fas fa-save me-2"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Styles {
+    <style>
+        @@media (max-width: 991.98px) {
+            .bg-primary.position-relative
+
+        {
+            height: 180px;
+        }
+
+        }
+
+        @@media (max-width: 767.98px) {
+            .position-relative[style*="margin-top: -80px"]
+
+        {
+            margin-top: -60px !important;
+        }
+
+        .col-lg-4.col-md-12 .d-flex {
+            margin-bottom: 1rem;
+        }
+
+        }
+
+        @@media (max-width: 575.98px) {
+            .position-relative[style*="margin-top: -80px"] img
+
+        {
+            width: 200px !important;
+            height: 200px !important;
+        }
+
+        .bg-primary.position-relative {
+            height: 150px;
+        }
+
+        .flex-sm-row {
+            flex-direction: column !important;
+        }
+
+        }
+
+        /* Mejoras para hover y transiciones */
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+            }
+
+        .hover-scale {
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+            .hover-scale:hover {
+                transform: scale(1.03);
+                background-color: #f8f9fa;
+            }
+
+        .pet-card-carousel .pet-card {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        @@media (min-width: 768px) {
+            .pet-card-carousel .pet-card
+
+        {
+            max-width: 80%;
+        }
+
+        }
+
+        @@media (min-width: 992px) {
+            .pet-card-carousel .pet-card
+
+        {
+            max-width: 70%;
+        }
+
+        }
+
+        .pet-sex-badge {
+            font-size: 2rem;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+            .pet-sex-badge:hover {
+                transform: scale(1.1);
+            }
+
+        .bg-pink {
+            background-color: #ff69b4 !important;
+        }
+
+        .pet-card {
+            perspective: 1000px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .pet-card-image {
+            height: 300px;
+            width: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+
+        .pet-card:hover .pet-card-image {
+            transform: scale(1.05);
+        }
+
+        .pet-card:hover {
+            transform: translateY(-8px) rotateX(3deg);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .pet-card-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .pet-card-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .pet-characteristics {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #0d6efd;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .characteristic {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+            .characteristic:hover {
+                transform: translateX(5px);
+            }
+
+        .characteristic-icon {
+            background-color: rgba(0, 123, 255, 0.1);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+            .characteristic-icon:hover {
+                background-color: rgba(0, 123, 255, 0.2);
+                transform: scale(1.1);
+            }
+
+            .characteristic-icon i {
+                font-size: 1.5rem;
+                transition: transform 0.3s ease;
+            }
+
+        .characteristic:hover .characteristic-icon i {
+            transform: scale(1.2);
+        }
+
+        .characteristic-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .characteristic-info .label {
+                font-size: 0.8rem;
+                color: #6c757d;
+                text-transform: uppercase;
+                transition: color 0.3s ease;
+            }
+
+        .characteristic:hover .characteristic-info .label {
+            color: #495057;
+        }
+
+        .characteristic-info .value {
+            font-weight: bold;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+
+        .characteristic:hover .characteristic-info .value {
+            color: #0d6efd;
+        }
+
+        .pet-name-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pet-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #007bff;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+            .pet-name:hover {
+                transform: scale(1.05);
+                color: #0056b3;
+            }
+
+            .pet-name::before {
+                content: '';
+                position: absolute;
+                bottom: -5px;
+                left: 0;
+                width: 100%;
+                height: 8px;
+                background: rgba(0, 123, 255, 0.2);
+                z-index: -1;
+                transform: rotate(-1deg);
+                transition: all 0.3s ease;
+            }
+
+            .pet-name:hover::before {
+                height: 10px;
+                background: rgba(0, 123, 255, 0.3);
+                transform: rotate(-2deg);
+            }
+
+        .adopt-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .adopt-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .adopt-btn::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateX(-100%);
+                transition: transform 0.5s ease;
+            }
+
+            .adopt-btn:hover::after {
+                transform: translateX(100%);
+            }
+
+        .pet-card .text-center {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+        .pet-card .adopt-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+            .pet-card .adopt-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+
+        .favorite-heart {
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.5s ease, transform 0.3s ease;
+            font-size: 1.5rem;
+            text-decoration: none;
+        }
+
+            .favorite-heart:hover {
+                color: #ff4136;
+                transform: scale(1.3) rotate(5deg);
+            }
+
+            .favorite-heart.active {
+                color: #ff4136;
+                animation: heart-beat 0.8s ease;
+            }
+
+        @@keyframes heart-beat {
+            0%, 100%
+
+        {
+            transform: scale(1);
+        }
+
+        25% {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        75% {
+            transform: scale(1.25) rotate(-5deg);
+        }
+
+        }
+
+        .pagination-btn {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+            .pagination-btn:hover:not(:disabled) {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+            }
+
+        .pagination-info {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .pet-card-carousel {
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mejoras para los botones */
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0d6efd, #0953c2);
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #0953c2, #0d6efd);
+            }
+
+        /* Mejora para el mapa */
+        #mapa {
+            border: 2px solid rgba(13, 110, 253, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+            #mapa:hover {
+                border-color: rgba(13, 110, 253, 0.5);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+        /* Mejora para modals */
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal .modal-content {
+            transform: scale(0.95);
+        }
+
+        /* Mejora para la imagen de perfil */
+        img[alt="Foto de Perfil"] {
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+            img[alt="Foto de Perfil"]:hover {
+                transform: scale(1.02) rotate(1deg);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            }
+
+        /* Mejora para input groups */
+        .input-group {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+
+            .input-group:focus-within {
+                box-shadow: 0 2px 10px rgba(13, 110, 253, 0.1);
+            }
+
+        /* Mejora para los íconos */
+        .fas {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover .fas,
+        .btn:hover .fas {
+            transform: scale(1.2);
+        }
+
+        /* Gradientes sutiles para fondos */
+        .bg-light {
+            background: linear-gradient(to bottom, #f8f9fa, #ffffff) !important;
+        }
+
+        /* Mejora para la animación de secciones */
+        .animate-section {
+            transition: opacity 0.8s ease, transform 0.8s ease !important;
+        }
+
+        /* Mejora para las tarjetas */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+            .card:hover {
+                box-shadow: 0 10px 25px rgba(13, 110, 253, 0.1) !important;
+            }
+
+        /* Mejora para los bordes redondeados */
+        .rounded-4 {
+            border-radius: 16px !important;
+        }
+
+        /* Efecto de elevación para elementos al hacer hover */
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.getElementById("fotoInput").addEventListener("change", function () {
+            if (this.files.length > 0) {
+                document.getElementById("uploadForm").submit();
+            }
+        });
+
+        // Agregar esto a tu sección Scripts
+        function cargarPagina(pagina) {
+            // Realizar la petición Ajax
+            $.ajax({
+                url: '@Url.Action("_MascotaFavoritaPartial", "Adoptante")',
+                data: { pagina: pagina },
+                type: "GET",
+                success: function(data) {
+                    // Actualizar el contenedor con la respuesta
+                    $("#contenedorMascotas").html(data);
+
+                    // Actualizar la información de paginación en la parte superior
+                    var paginaInfo = $("#paginaInfo").text();
+                    $(".pagination-info .badge span").text(paginaInfo);
+                },
+                error: function(error) {
+                    if (xhr.status === 401) {
+                        window.location.href = '@Url.Action("Login", "Managed")';
+                    } else {
+                        console.error("Error al cargar las mascotas favoritas:", xhr);
+                        $("#contenedorMascotas").html('<div class="alert alert-danger">Error al cargar las mascotas favoritas</div>');
+                    }
+                }
+            });
+        }
+
+        // Opcional: Inicializar la primera página al cargar
+        $(document).ready(function() {
+            // Solo si no hay contenido inicial
+            if ($("#contenedorMascotas").children().length === 0) {
+                cargarPagina(1);
+            }
+        });
+    </script>
+}
+
+<!-- Scripts de OpenStreetMap -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Inicializar elementos con animaciones
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar el mapa con OpenStreetMap
+            const mapaElement = document.getElementById('mapa');
+            const statusElement = document.getElementById('ubicacion-status');
+            const latitudInput = document.getElementById('Latitud');
+            const longitudInput = document.getElementById('Longitud');
+            const latitudDisplay = document.getElementById('LatitudDisplay');
+            const longitudDisplay = document.getElementById('LongitudDisplay');
+
+            if (mapaElement) {
+                try {
+                    // Obtener las coordenadas del modelo
+                    let lat = @Html.Raw(Json.Serialize(Model.Latitud));
+                    let lng = @Html.Raw(Json.Serialize(Model.Longitud));
+
+                    // Si no hay coordenadas guardadas, usar las del ViewData
+                    if (lat === 0 && lng === 0) {
+                        lat = @Html.Raw(Json.Serialize(ViewData["LATITUD"]));
+                        lng = @Html.Raw(Json.Serialize(ViewData["LONGITUD"]));
+                    }
+
+                    console.log("Coordenadas obtenidas:", lat, lng);
+
+                    // Mostrar las coordenadas en los campos de visualización
+                    latitudDisplay.value = lat.toFixed(6);
+                    longitudDisplay.value = lng.toFixed(6);
+
+                    // Inicializar el mapa
+                    const map = L.map('mapa').setView([lat, lng], 13);
+
+                    // Añadir capa de OpenStreetMap
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+
+                    // Añadir marcador inicial
+                    let marker = L.marker([lat, lng], {
+                        draggable: true
+                    }).addTo(map);
+
+                    // Establecer los valores iniciales en los campos
+                    latitudInput.value = lat;
+                    longitudInput.value = lng;
+
+                        // Reemplaza esta parte en tu script existente
+    marker.on('dragend', function(event) {
+        const position = marker.getLatLng();
+        // Formatea los valores a 6 decimales y luego asígnalos
+        const formattedLat = position.lat.toFixed(6);
+        const formattedLng = position.lng.toFixed(6);
+
+        // Asigna valores formateados tanto a los campos reales como a los de visualización
+        latitudInput.value = formattedLat;
+        longitudInput.value = formattedLng;
+        latitudDisplay.value = formattedLat;
+        longitudDisplay.value = formattedLng;
+
+        // Actualiza el mensaje de estado
+        statusElement.innerHTML = '<i class="fas fa-check-circle me-1"></i> Ubicación seleccionada: ' + formattedLat + ', ' + formattedLng;
+        statusElement.className = 'text-success mt-1 text-center';
+    });
+
+    // Igualmente para el evento de clic en el mapa
+    map.on('click', function(e) {
+        const newLatLng = e.latlng;
+        marker.setLatLng(newLatLng);
+
+        // Formatea los valores a 6 decimales
+        const formattedLat = newLatLng.lat.toFixed(6);
+        const formattedLng = newLatLng.lng.toFixed(6);
+
+        // Asigna valores formateados tanto a los campos reales como a los de visualización
+        latitudInput.value = formattedLat;
+        longitudInput.value = formattedLng;
+        latitudDisplay.value = formattedLat;
+        longitudDisplay.value = formattedLng;
+
+        // Actualiza el mensaje de estado
+        statusElement.innerHTML = '<i class="fas fa-check-circle me-1"></i> Ubicación seleccionada: ' + formattedLat + ', ' + formattedLng;
+        statusElement.className = 'text-success mt-1 text-center';
+    });
+
+                } catch (error) {
+                    console.error("Error al inicializar el mapa:", error);
+                    mapaElement.innerHTML = '<div class="alert alert-danger">Error al cargar el mapa: ' + error.message + '</div>';
+                }
+            }
+    });
+</script>
+<script>
+    // Función para animar elementos cuando aparecen en el viewport
+        const animateSections = function() {
+            const sections = document.querySelectorAll('.animate-section');
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                if (sectionTop < windowHeight * 0.85) {
+                    section.style.opacity = '1';
+                }
+            });
+        };
+
+        // Ejecutar animación al cargar y al hacer scroll
+        animateSections();
+        window.addEventListener('scroll', animateSections);
+
+        // Resto de tu código JS existente
+        document.getElementById("fotoInput")?.addEventListener("change", function () {
+            if (this.files.length > 0) {
+                document.getElementById("uploadForm").submit();
+            }
+        });
+</script>

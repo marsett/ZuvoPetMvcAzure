@@ -1,0 +1,1062 @@
+﻿@model PerfilAdoptanteViewModel
+
+@{
+    ViewData["Title"] = "Perfil del Adoptante";
+}
+
+<div class="container py-5">
+
+    <div class="bg-white shadow rounded-4 mb-4 overflow-hidden">
+        <!-- Banner superior con temática de mascotas -->
+        <div class="position-relative" style="height: 220px; background: #bab986 !important;">
+
+            <!-- Imagen de perfil con borde mejorado -->
+            <img src="~/images/@Model.Perfil.FotoPerfil" alt="Foto de Perfil"
+                 class="border-4 border-white shadow"
+                 style="width: 250px; height: 250px; object-fit: cover; background-color: #f8f9fa; border-radius: 20px;
+        margin: 20px; position: relative; z-index: 5;">
+            <form asp-action="SubirFichero" method="post" enctype="multipart/form-data" id="uploadForm">
+                <label for="fotoInput" class="position-absolute bg-white shadow rounded-circle p-2 d-flex align-items-center justify-content-center"
+                       style="top: 10px; left: 250px; width: 40px; height: 40px; cursor: pointer; border: 2px solid black; z-index: 6;">
+                    <i class="fas fa-camera" style=" color: #3e3e53;"></i>
+                </label>
+                <input type="file" id="fotoInput" name="fichero" accept="image/*" style="display: none;" />
+            </form>
+        </div>
+
+        <!-- Contenedor principal con diseño mejorado -->
+        <div class="container-fluid px-4 pb-4" style="margin-top: 70px;">
+            <div class="row mt-4 gy-4">
+                <!-- COLUMNA 1: Nombre y estadísticas -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <h2 class="fw-bold mb-4 text-center text-lg-start" style="color: #3e3e53;">@Model.Perfil.Nombre</h2>
+
+                            <!-- Estadísticas en formato de tarjetas horizontales -->
+                            <div class="row g-3">
+                                <div class="col-xl-6">
+                                    <div class="bg-light rounded-4 p-3 h-100 d-flex align-items-center border border-success border-opacity-25 hover-scale">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                                            <i class="fas fa-heart text-danger fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fs-5 fw-bold">@(Model.MascotasFavoritas != null ? Model.MascotasFavoritas.Count() : 0)</div>
+                                            <div class="text-muted small">Favoritos</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-6">
+                                    <div class="bg-light rounded-4 p-3 h-100 d-flex align-items-center border border-success border-opacity-25 hover-scale">
+                                        <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
+                                            <i class="fas fa-home text-success fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fs-5 fw-bold">@(Model.MascotasAdoptadas != null ? Model.MascotasAdoptadas.Count() : 0)</div>
+                                            <div class="text-muted small">Adoptadas</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-4 mt-2">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title fw-bold mb-0">
+                                        Sobre el Adoptante
+                                    </h5>
+                                    <button class="btn btn-sm btn-light rounded-circle" data-bs-toggle="modal" data-bs-target="#editSobreMiModal">
+                                        <i class="fas fa-edit text-primary"></i>
+                                    </button>
+                                </div>
+                                <div class="p-3 rounded-4 bg-light">
+                                    <p class="card-text @(string.IsNullOrEmpty(Model.Perfil.Descripcion) ? "text-muted fst-italic" : "")">
+                                        @(string.IsNullOrEmpty(Model.Perfil.Descripcion) ? "Agrega una descripción para que los protectores te conozcan mejor..." : Model.Perfil.Descripcion)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 2: Usuario, email y botón editar -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column justify-content-between h-100">
+                                <div>
+                                    <h4 class="mb-4 fw-semibold" style="color: #3e3e53;">
+                                        <i class="fas fa-address-card me-2"></i>Información de contacto
+                                    </h4>
+                                    <div class="d-flex flex-column gap-3 mb-4">
+                                        <div class="d-flex align-items-center p-3 border-bottom border-success border-opacity-25 rounded-3 bg-light hover-scale">
+                                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-user text-success"></i>
+                                            </div>
+                                            <span class="fs-6">@Model.Perfil.NombreUsuario</span>
+                                        </div>
+                                        <div class="d-flex align-items-center p-3 border-bottom border-primary border-opacity-25 rounded-3 bg-light hover-scale">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                                <i class="fas fa-envelope text-primary"></i>
+                                            </div>
+                                            <span class="fs-6 text-truncate">@Model.Perfil.Email</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn btn-primary btn-lg rounded-pill shadow px-4 py-2 hover-lift" data-bs-toggle="modal" data-bs-target="#editPerfilModal">
+                                        <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- IMPROVED PERFIL DE ADOPCIÓN SECTION - Now full width -->
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title fw-bold mb-0" style="color: #3e3e53;">
+                            Perfil de Adopción
+                        </h5>
+                        <button class="btn btn-sm btn-primary rounded-circle shadow-sm" data-bs-toggle="modal" data-bs-target="#editDetallesModal">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+
+                    <!-- Detalles de hogar con diseño mejorado -->
+                    <h6 class="fw-bold mb-3 border-bottom pb-2" style="color: #3e3e53;">Datos del Hogar</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6 col-6">
+                            <div class="d-flex align-items-center bg-light rounded-4 p-3 h-100 hover-scale">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-home text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Vivienda</div>
+                                    <div class="fw-medium">@Model.Perfil.TipoVivienda</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-6">
+                            <div class="d-flex align-items-center bg-light rounded-4 p-3 h-100 hover-scale">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-clock text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">En Casa</div>
+                                    <div class="fw-medium">@Model.Perfil.TiempoEnCasa</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-6">
+                            <div class="d-flex align-items-center bg-light rounded-4 p-3 h-100 hover-scale">
+                                <div class="rounded-circle bg-@(Model.Perfil.OtrosAnimales ? "success" : "danger") bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-tree text-@(Model.Perfil.OtrosAnimales ? "success" : "danger")"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Jardín</div>
+                                    <div class="fw-medium">@(Model.Perfil.TieneJardin ? "Disponible" : "No disponible")</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-6">
+                            <div class="d-flex align-items-center bg-light rounded-4 p-3 h-100 hover-scale">
+                                <div class="rounded-circle bg-@(Model.Perfil.OtrosAnimales ? "success" : "danger") bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-paw text-@(Model.Perfil.OtrosAnimales ? "success" : "danger")"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Otros Animales</div>
+                                    <div class="fw-medium">@(Model.Perfil.OtrosAnimales ? "Sí tiene" : "No tiene")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recursos y experiencia con diseño mejorado -->
+                    <h6 class="fw-bold mb-3 border-bottom pb-2" style="color: #3e3e53;">Recursos y Experiencia</h6>
+
+                    <!-- Recursos con diseño mejorado -->
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        @foreach (var recurso in Model.Perfil.RecursosDisponibles)
+                        {
+                            <div class="bg-light rounded-pill px-3 py-2 d-flex align-items-center hover-scale border border-primary border-opacity-25">
+                                @switch (recurso)
+                                {
+                                    case "Espacio suficiente":
+                                        <i class="fas fa-ruler text-primary me-1"></i>
+                                        break;
+                                    case "Tiempo suficiente":
+                                        <i class="fas fa-hourglass-half text-primary me-1"></i>
+                                        break;
+                                    case "Compromiso emocional":
+                                        <i class="fas fa-heart text-primary me-1"></i>
+                                        break;
+                                    case "Recursos financieros":
+                                        <i class="fas fa-dollar-sign text-primary me-1"></i>
+                                        break;
+                                    default:
+                                        <i class="fas fa-check text-primary me-1"></i>
+                                        break;
+                                }
+                                <span>@recurso</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IMPROVED MASCOTAS FAVORITAS SECTION - Now below the profile -->
+        <div class="col-12">
+            <div class="card border-0 shadow rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="fas fa-heart text-danger me-2"></i>Mis Favoritos
+                        </h5>
+                        <a href="@Url.Action("Adopta", "Adoptante")" class="btn btn-primary rounded-pill px-4">
+                            <i class="fas fa-search me-2"></i>Explorar más mascotas
+                        </a>
+                    </div>
+
+                    <!-- Contenedor de mascotas favoritas -->
+                    <div id="mascotasFavoritasContainer">
+                        @if (Model.MascotasFavoritas != null && Model.MascotasFavoritas.Any())
+                        {
+                            <div id="contenedorMascotas" class="pet-card-carousel">
+                                <!-- El contenido se cargará mediante Ajax -->
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <div class="d-inline-flex justify-content-center align-items-center bg-light rounded-circle p-4 mb-3">
+                                    <i class="fas fa-heart-broken text-danger" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <h5 class="text-dark mt-3">Aún no tienes mascotas favoritas</h5>
+                                <p class="text-muted">Explora nuestro catálogo y marca las mascotas que te interesen para adoptar</p>
+                                <a href="@Url.Action("Adopta", "Adoptante")" class="btn btn-primary rounded-pill mt-2 px-4">
+                                    <i class="fas fa-search me-2"></i>Explorar Mascotas
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AÑADIR DESPUÉS DE LA SECCIÓN DE MASCOTAS FAVORITAS -->
+        <!-- MASCOTAS ADOPTADAS SECTION -->
+        <div class="col-12 mt-4">
+            <div class="card border-0 shadow rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="fas fa-home text-success me-2"></i>Mis Mascotas Adoptadas
+                        </h5>
+                    </div>
+
+                    <!-- Contenedor de mascotas adoptadas -->
+                    <div id="mascotasAdoptadasContainer">
+                        @if (Model.MascotasAdoptadas != null && Model.MascotasAdoptadas.Any())
+                        {
+                            <div id="contenedorMascotasAdoptadas" class="pet-card-carousel">
+                                <!-- El contenido se cargará mediante Ajax -->
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <div class="d-inline-flex justify-content-center align-items-center bg-light rounded-circle p-4 mb-3">
+                                    <i class="fas fa-home text-success" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <h5 class="text-dark mt-3">Aún no has adoptado ninguna mascota</h5>
+                                <p class="text-muted">Cuando adoptes una mascota, aparecerá en esta sección</p>
+                                <a href="@Url.Action("Adopta", "Adoptante")" class="btn btn-success rounded-pill mt-2 px-4">
+                                    <i class="fas fa-search me-2"></i>Explorar Mascotas
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal para editar "Perfil" -->
+<div class="modal fade" id="editPerfilModal" tabindex="-1" aria-labelledby="editPerfilModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editPerfilModalLabel">
+                    <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-action="ActualizarPerfil">
+                    <div class="mb-3">
+                        <label for="Nombre" class="form-label">Nombre</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-user text-primary"></i></span>
+                            <input type="text" class="form-control border-0 bg-light" id="Nombre" name="Nombre" value="@Model.Perfil.Nombre" required>
+                        </div>
+                        <span asp-validation-for="Perfil.Nombre" class="text-danger"></span>
+                    </div>
+                    <div class="mb-4">
+                        <label for="Email" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-primary"></i></span>
+                            <input type="email" class="form-control border-0 bg-light" id="Email" name="Email" value="@Model.Perfil.Email" required>
+                        </div>
+                        <span asp-validation-for="Perfil.Email" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill">
+                            <i class="fas fa-save me-2"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar "Sobre Mí" -->
+<div class="modal fade" id="editSobreMiModal" tabindex="-1" aria-labelledby="editSobreMiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editSobreMiModalLabel">
+                    <i class="fas fa-edit me-2"></i>Editar Sobre Mí
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-action="ActualizarDescripcion">
+                    <div class="mb-4">
+                        <label for="Descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control border-0 bg-light" id="Descripcion" name="Descripcion" rows="5"
+                                  placeholder="Cuéntanos sobre ti, por qué quieres adoptar, tu experiencia con mascotas...">@Model.Perfil.Descripcion</textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill">
+                            <i class="fas fa-save me-2"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar "Detalles del Adoptante" -->
+<div class="modal fade" id="editDetallesModal" tabindex="-1" aria-labelledby="editDetallesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editDetallesModalLabel">
+                    <i class="fas fa-house-user me-2"></i>Editar Perfil de Adopción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post" asp-action="ActualizarDetalles" id="formDetalles">
+                    <div class="row g-4">
+
+                        <div class="col-md-6">
+                            <label for="TipoVivienda" class="form-label">Tipo de Vivienda</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-home text-primary"></i></span>
+                                <select class="form-select border-0 bg-light" id="TipoVivienda" name="TipoVivienda">
+                                    <option value="Casa" selected="@(Model.Perfil.TipoVivienda == "Casa")">Casa</option>
+                                    <option value="Piso" selected="@(Model.Perfil.TipoVivienda == "Piso")">Piso</option>
+                                    <option value="Dúplex" selected="@(Model.Perfil.TipoVivienda == "Dúplex")">Dúplex</option>
+                                    <option value="Chalet" selected="@(Model.Perfil.TipoVivienda == "Chalet")">Chalet</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="TiempoEnCasa" class="form-label">Tiempo en Casa</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-clock text-primary"></i></span>
+                                <select class="form-select border-0 bg-light" id="TiempoEnCasa" name="TiempoEnCasa">
+                                    <option value="Menos de 4 horas" selected="@(Model.Perfil.TiempoEnCasa == "Menos de 4 horas")">Menos de 4 horas</option>
+                                    <option value="4-8 horas" selected="@(Model.Perfil.TiempoEnCasa == "4-8 horas")">4-8 horas</option>
+                                    <option value="Más de 8 horas" selected="@(Model.Perfil.TiempoEnCasa == "Más de 8 horas")">Más de 8 horas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="TieneJardin" class="form-label">¿Tiene Jardín?</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-tree text-primary"></i></span>
+                                        <select class="form-select border-0 bg-light" id="TieneJardin" name="TieneJardin">
+                                            <option value="true" selected="@Model.Perfil.TieneJardin">Sí</option>
+                                            <option value="false" selected="@(!Model.Perfil.TieneJardin)">No</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="OtrosAnimales" class="form-label">¿Otros Animales?</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-dove text-primary"></i></span>
+                                        <select class="form-select border-0 bg-light" id="OtrosAnimales" name="OtrosAnimales">
+                                            <option value="true" selected="@Model.Perfil.OtrosAnimales">Sí</option>
+                                            <option value="false" selected="@(!Model.Perfil.OtrosAnimales)">No</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Recursos Disponibles</label>
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="Recurso1" name="RecursosDisponibles" value="Espacio suficiente" @(Model.Perfil.RecursosDisponibles.Contains("Espacio suficiente") ? "checked" : "")>
+                                        <label class="form-check-label" for="Recurso1">
+                                            <i class="fas fa-ruler me-2 text-primary"></i>Espacio suficiente
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="Recurso2" name="RecursosDisponibles" value="Estilo de vida adecuado" @(Model.Perfil.RecursosDisponibles.Contains("Estilo de vida adecuado") ? "checked" : "")>
+                                        <label class="form-check-label" for="Recurso2">
+                                            <i class="fas fa-hourglass-half me-2 text-primary"></i>Estilo de vida adecuado
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="Recurso3" name="RecursosDisponibles" value="Compromiso emocional" @(Model.Perfil.RecursosDisponibles.Contains("Compromiso emocional") ? "checked" : "")>
+                                        <label class="form-check-label" for="Recurso3">
+                                            <i class="fas fa-heart me-2 text-primary"></i>Compromiso emocional
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="Recurso4" name="RecursosDisponibles" value="Recursos financieros" @(Model.Perfil.RecursosDisponibles.Contains("Recursos financieros") ? "checked" : "")>
+                                        <label class="form-check-label" for="Recurso4">
+                                            <i class="fas fa-dollar-sign me-2 text-primary"></i>Recursos financieros
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" id="btnGuardarDetalles" class="btn btn-primary rounded-pill">
+                            <i class="fas fa-save me-2"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("fotoInput").addEventListener("change", function () {
+            if (this.files.length > 0) {
+                document.getElementById("uploadForm").submit();
+            }
+        });
+
+        // Agregar esto a tu sección Scripts
+        function cargarPagina(pagina) {
+            // Realizar la petición Ajax
+            $.ajax({
+                url: '@Url.Action("_MascotaFavoritaPartial", "Adoptante")',
+                data: { pagina: pagina },
+                type: "GET",
+                success: function(data) {
+                    // Actualizar el contenedor con la respuesta
+                    $("#contenedorMascotas").html(data);
+
+                    // Actualizar la información de paginación en la parte superior
+                    var paginaInfo = $("#paginaInfo").text();
+                    $(".pagination-info .badge span").text(paginaInfo);
+                },
+                error: function(error) {
+                    if (xhr.status === 401) {
+                        window.location.href = '@Url.Action("Login", "Managed")';
+                    } else {
+                        console.error("Error al cargar las mascotas favoritas:", xhr);
+                        $("#contenedorMascotas").html('<div class="alert alert-danger">Error al cargar las mascotas favoritas</div>');
+                    }
+                }
+            });
+        }
+
+        // Función para cargar página de adoptadas
+        function cargarPaginaAdoptadas(pagina) {
+            // Realizar la petición Ajax
+            $.ajax({
+                url: '@Url.Action("_MascotasAdoptadasPartial", "Adoptante")',
+                data: { pagina: pagina },
+                type: "GET",
+                success: function(data) {
+                    // Actualizar el contenedor con la respuesta
+                    $("#contenedorMascotasAdoptadas").html(data);
+                    // Actualizar la información de paginación
+                    var paginaInfo = $("#paginaInfoAdoptadas").text();
+                    $(".pagination-info-adoptadas .badge span").text(paginaInfo);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401) {
+                        window.location.href = '@Url.Action("Login", "Managed")';
+                    } else {
+                        console.error("Error al cargar las mascotas adoptadas:", xhr);
+                        $("#contenedorMascotasAdoptadas").html('<div class="alert alert-danger">Error al cargar las mascotas adoptadas</div>');
+                    }
+                }
+            });
+        }
+
+        // Opcional: Inicializar la primera página al cargar
+        $(document).ready(function() {
+            // Solo si no hay contenido inicial
+            if ($("#contenedorMascotas").children().length === 0) {
+                cargarPagina(1);
+            }
+            // Cargar adoptadas si no hay contenido inicial
+            if ($("#contenedorMascotasAdoptadas").children().length === 0) {
+                cargarPaginaAdoptadas(1);
+            }
+
+            // Validación de checkboxes para recursos disponibles
+            $("#btnGuardarDetalles").click(function() {
+                // Verificar si al menos un checkbox está seleccionado
+                var recursosSeleccionados = $("input[name='RecursosDisponibles']:checked").length;
+
+                if (recursosSeleccionados === 0) {
+                    event.preventDefault();
+                    // Mostrar SweetAlert si ningún checkbox está seleccionado
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de validación',
+                        text: 'Debes seleccionar al menos un recurso disponible',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Entendido'
+                    });
+                } else {
+                    // Si al menos un checkbox está seleccionado, enviar el formulario
+                    $("#formDetalles").submit();
+                }
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        @@media (max-width: 991.98px) {
+            .bg-primary.position-relative {
+                height: 180px;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            .position-relative[style*="margin-top: -80px"] {
+                margin-top: -60px !important;
+            }
+
+            .col-lg-4.col-md-12 .d-flex {
+                margin-bottom: 1rem;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .position-relative[style*="margin-top: -80px"] img {
+                width: 200px !important;
+                height: 200px !important;
+            }
+
+            .bg-primary.position-relative {
+                height: 150px;
+            }
+
+            .flex-sm-row {
+                flex-direction: column !important;
+            }
+        }
+
+        /* Mejoras para hover y transiciones */
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+            }
+
+        .hover-scale {
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+            .hover-scale:hover {
+                transform: scale(1.03);
+                background-color: #f8f9fa;
+            }
+
+        .pet-card-carousel .pet-card {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        @@media (min-width: 768px) {
+            .pet-card-carousel .pet-card {
+                max-width: 80%;
+            }
+        }
+
+        @@media (min-width: 992px) {
+            .pet-card-carousel .pet-card {
+                max-width: 70%;
+            }
+        }
+
+        .pet-sex-badge {
+            font-size: 2rem;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+            .pet-sex-badge:hover {
+                transform: scale(1.1);
+            }
+
+        .bg-pink {
+            background-color: #ff69b4 !important;
+        }
+
+        .pet-card {
+            border-radius: 16px;
+            overflow: hidden;
+            background-color: white;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
+            margin: 0 auto;
+        }
+
+            .pet-card:hover {
+                transform: translateY(-8px) rotateX(3deg);
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+            }
+
+        .pet-card-image {
+            height: 300px;
+            width: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .pet-card:hover .pet-card-image {
+            transform: scale(1.05);
+        }
+
+        .pet-card-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .pet-card-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .pet-characteristics {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #0d6efd;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .characteristic {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+            .characteristic:hover {
+                transform: translateX(5px);
+            }
+
+        .characteristic-icon {
+            background-color: rgba(0, 123, 255, 0.1);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+            .characteristic-icon:hover {
+                background-color: rgba(0, 123, 255, 0.2);
+                transform: scale(1.1);
+            }
+
+            .characteristic-icon i {
+                font-size: 1.5rem;
+                transition: transform 0.3s ease;
+            }
+
+        .characteristic:hover .characteristic-icon i {
+            transform: scale(1.2);
+        }
+
+        .characteristic-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .characteristic-info .label {
+                font-size: 0.8rem;
+                color: #6c757d;
+                text-transform: uppercase;
+                transition: color 0.3s ease;
+            }
+
+        .characteristic:hover .characteristic-info .label {
+            color: #495057;
+        }
+
+        .characteristic-info .value {
+            font-weight: bold;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+
+        .characteristic:hover .characteristic-info .value {
+            color: #0d6efd;
+        }
+
+        .pet-name-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pet-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #007bff;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+            .pet-name:hover {
+                transform: scale(1.05);
+                color: #0056b3;
+            }
+
+            .pet-name::before {
+                content: '';
+                position: absolute;
+                bottom: -5px;
+                left: 0;
+                width: 100%;
+                height: 8px;
+                background: rgba(0, 123, 255, 0.2);
+                z-index: -1;
+                transform: rotate(-1deg);
+                transition: all 0.3s ease;
+            }
+
+            .pet-name:hover::before {
+                height: 10px;
+                background: rgba(0, 123, 255, 0.3);
+                transform: rotate(-2deg);
+            }
+
+        .adopt-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .adopt-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .adopt-btn::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateX(-100%);
+                transition: transform 0.5s ease;
+            }
+
+            .adopt-btn:hover::after {
+                transform: translateX(100%);
+            }
+
+        .pet-card .text-center {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+        .pet-card .adopt-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+            .pet-card .adopt-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+
+        .favorite-heart {
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.5s ease, transform 0.3s ease;
+            font-size: 1.5rem;
+            text-decoration: none;
+        }
+
+            .favorite-heart:hover {
+                color: #ff4136;
+                transform: scale(1.3) rotate(5deg);
+            }
+
+            .favorite-heart.active {
+                color: #ff4136;
+                animation: heart-beat 0.8s ease;
+            }
+
+        @@keyframes heart-beat {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            25% {
+                transform: scale(1.2) rotate(5deg);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            75% {
+                transform: scale(1.25) rotate(-5deg);
+            }
+        }
+
+        .pagination-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+            .pagination-btn:hover:not(:disabled) {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            }
+
+            .pagination-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+        .pagination-info {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .pet-card-carousel {
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mejoras para los botones */
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0d6efd, #0953c2);
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #0953c2, #0d6efd);
+            }
+
+        /* Mejora para el mapa */
+        #mapa {
+            border: 2px solid rgba(13, 110, 253, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+            #mapa:hover {
+                border-color: rgba(13, 110, 253, 0.5);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+        /* Mejora para modals */
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal .modal-content {
+            transform: scale(0.95);
+        }
+
+        /* Mejora para la imagen de perfil */
+        img[alt="Foto de Perfil"] {
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+            img[alt="Foto de Perfil"]:hover {
+                transform: scale(1.02) rotate(1deg);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            }
+
+        /* Mejora para input groups */
+        .input-group {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+
+            .input-group:focus-within {
+                box-shadow: 0 2px 10px rgba(13, 110, 253, 0.1);
+            }
+
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .hover-scale:hover {
+                transform: scale(1.03);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            }
+
+        /* Mejora para los íconos */
+        .fas {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover .fas,
+        .btn:hover .fas {
+            transform: scale(1.2);
+        }
+
+        /* Gradientes sutiles para fondos */
+        .bg-light {
+            background: linear-gradient(to bottom, #f8f9fa, #ffffff) !important;
+        }
+
+        /* Mejora para la animación de secciones */
+        .animate-section {
+            transition: opacity 0.8s ease, transform 0.8s ease !important;
+        }
+
+        /* Mejora para las tarjetas */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+            .card:hover {
+                box-shadow: 0 10px 25px rgba(13, 110, 253, 0.1) !important;
+            }
+
+        /* Mejora para los bordes redondeados */
+        .rounded-4 {
+            border-radius: 16px !important;
+        }
+
+        /* Efecto de elevación para elementos al hacer hover */
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+            }
+
+        /* Mobile responsiveness enhancements */
+        @@media (max-width: 767.98px) {
+            .pet-card
+
+        {
+            max-width: 100%;
+        }
+
+        .col-6 {
+            width: 100%;
+        }
+
+        }
+    </style>
+}

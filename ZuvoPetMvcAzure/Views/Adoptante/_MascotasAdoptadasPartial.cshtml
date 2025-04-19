@@ -1,0 +1,116 @@
+﻿@model dynamic
+@{
+    if (Model == null)
+    {
+        <div class="text-center">
+            <p>No hay mascotas adoptadas para mostrar.</p>
+        </div>
+        return;
+    }
+
+    var mascota = Model.Mascota;
+    var paginaActual = Model.PaginaActual;
+    var totalPaginas = Model.TotalPaginas;
+
+    var años = mascota.Edad / 12;
+    var meses = mascota.Edad % 12;
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <!-- Tarjeta de mascota adoptada -->
+            <div class="card pet-card border-0 shadow-lg overflow-hidden w-100 mb-4">
+                <div class="position-relative">
+                    <img src="~/images/@mascota.Foto"
+                         class="card-img-top pet-card-image"
+                         alt="@mascota.Nombre">
+                    <div class="pet-card-overlay">
+                        <div class="pet-card-badges">
+                            <div class="pet-sex-badge @(mascota.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                <i class="fas @(mascota.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                            </div>
+                        </div>
+                        <!-- Fecha de adopción ahora posicionada a la izquierda -->
+                        <div class="adoption-date-badge">
+                            <div class="bg-success text-white py-1 px-3 rounded-pill shadow-sm">
+                                <i class="fas fa-heart me-1"></i> Adoptado: @(mascota.FechaAdopcion?.ToString("dd/MM/yyyy"))
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="pet-card-content p-4">
+                        <div class="pet-name-container">
+                            <h4 class="pet-name">
+                                @mascota.Nombre
+                            </h4>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a asp-controller="Adoptante"
+                               asp-action="DetallesMascota"
+                               asp-route-idmascota="@mascota.Id"
+                               class="btn btn-success btn-lg w-100 adopt-btn">
+                                Ver detalles de @mascota.Nombre
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles de paginación -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="pagination-controls d-flex justify-content-center mt-3 mb-5">
+                        <button class="btn btn-outline-success me-2" onclick="cargarPaginaAdoptadas(1)" @(paginaActual <= 1 ? "disabled" : "")>
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button class="btn btn-outline-success me-2" onclick="cargarPaginaAdoptadas(@(paginaActual - 1))" @(paginaActual <= 1 ? "disabled" : "")>
+                            <i class="fas fa-angle-left"></i>
+                        </button>
+                        <span class="badge bg-success rounded-pill px-3 py-2 d-flex align-items-center mx-2">
+                            <i class="fas fa-home me-1"></i>
+                            <span id="paginaInfoAdoptadas">@paginaActual de @totalPaginas</span>
+                        </span>
+                        <button class="btn btn-outline-success ms-2" onclick="cargarPaginaAdoptadas(@(paginaActual + 1))" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                            <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="btn btn-outline-success ms-2" onclick="cargarPaginaAdoptadas(@totalPaginas)" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilo actualizado para la etiqueta de fecha de adopción, ahora a la izquierda */
+    .adoption-date-badge {
+        position: absolute;
+        bottom: 10px;
+        left: 10px; /* Cambiado de right a left */
+        z-index: 10;
+        font-weight: 500;
+        font-size: 0.9rem;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%
+
+    {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+    }
+</style>

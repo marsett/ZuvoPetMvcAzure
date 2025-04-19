@@ -1,0 +1,381 @@
+﻿@model List<Refugio>
+
+@{
+    var paginaActual = ViewBag.PaginaActual;
+    var totalPaginas = ViewBag.TotalPaginas;
+    @Html.AntiForgeryToken()
+}
+
+<div class="container-fluid px-4 py-5 pet-shelter-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="shelter-page-title text-center mb-4">
+                <span class="title-highlight">Conoce</span> nuestros
+                <span class="title-highlight">Refugios</span>
+                <span class="title-emoji">🏠</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Shelter Cards with Enhanced Design -->
+    <div class="row g-4" id="shelterGallery">
+        @foreach (var refugio in Model)
+        {
+            var porcentajeOcupacion = Math.Round((double)refugio.CantidadAnimales / refugio.CapacidadMaxima * 100);
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card shelter-card h-100 border-0 shadow-lg overflow-hidden">
+                    <div class="position-relative">
+                        <img src="~/images/@refugio.Usuario.PerfilUsuario.FotoPerfil"
+                             class="card-img-top shelter-card-image"
+                             alt="@refugio.NombreRefugio">
+                        <div class="shelter-card-overlay">
+                            <div class="shelter-card-badges">
+                                <div class="shelter-badge bg-primary">
+                                    <i class="fas fa-paw"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="shelter-card-content p-4">
+                            <div class="shelter-name-container">
+                                <h4 class="shelter-name">
+                                    @refugio.NombreRefugio
+                                </h4>
+                            </div>
+
+                            <div class="shelter-characteristics">
+
+                                <div class="characteristic">
+                                    <div class="characteristic-icon">
+                                        <i class="fas fa-phone text-success"></i>
+                                    </div>
+                                    <div class="characteristic-info">
+                                        <span class="label">Contacto</span>
+                                        <span class="value">@refugio.ContactoRefugio</span>
+                                    </div>
+                                </div>
+
+                                <div class="characteristic">
+                                    <div class="characteristic-icon">
+                                        <i class="fas fa-dog text-primary"></i>
+                                    </div>
+                                    <div class="characteristic-info">
+                                        <span class="label">Ocupación</span>
+                                        <span class="value">@refugio.CantidadAnimales / @refugio.CapacidadMaxima</span>
+                                    </div>
+                                </div>
+
+                                <div class="capacity-container mt-2">
+                                    <div class="capacity-label d-flex justify-content-between mb-1">
+                                        <span>Capacidad</span>
+                                        <span>@porcentajeOcupacion%</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar @(porcentajeOcupacion > 90 ? "bg-danger" : porcentajeOcupacion > 70 ? "bg-warning" : "bg-success")"
+                                             role="progressbar"
+                                             style="width: @porcentajeOcupacion%;"
+                                             aria-valuenow="@porcentajeOcupacion"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="shelter-description mt-3">
+                                <p class="description-text">@(refugio.Usuario.PerfilUsuario.Descripcion?.Length > 50 ? refugio.Usuario.PerfilUsuario.Descripcion.Substring(0, 50) + "..." : refugio.Usuario.PerfilUsuario.Descripcion)</p>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <a asp-controller="Adoptante"
+                                   asp-action="DetallesRefugio"
+                                   asp-route-idrefugio="@refugio.Id"
+                                   class="btn btn-primary btn-lg w-100 view-btn">
+                                    Conocer más sobre @refugio.NombreRefugio
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- No shelters found message -->
+    @if (!Model.Any())
+    {
+        <div class="text-center mt-5">
+            <h3 class="text-muted">No se encontraron refugios 🏠</h3>
+            <p class="lead">No hay refugios disponibles en este momento</p>
+        </div>
+    }
+    @if (Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="pagination-controls d-flex justify-content-center mt-5 mb-5">
+                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(1)" @(paginaActual <= 1 ? "disabled" : "")>
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(@(paginaActual - 1))" @(paginaActual <= 1 ? "disabled" : "")>
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center mx-2">
+                        <i class="fas fa-paw me-1"></i>
+                        <span id="paginaInfo">@paginaActual de @totalPaginas</span>
+                    </span>
+                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@(paginaActual + 1))" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@totalPaginas)" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<script>
+    function cargarPagina(pagina) {
+        // Mostrar un indicador de carga
+        const shelterGallery = document.getElementById('shelterGallery');
+        shelterGallery.innerHTML = '<div class="col-12 text-center mt-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+
+        // Construir la URL
+        let url = '/Adoptante/Refugios?pagina=' + pagina;
+
+        // Realizar la solicitud AJAX
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Actualizar el contenido de la página
+            document.body.innerHTML = html;
+
+            // Actualizar la URL del navegador sin recargar la página
+            window.history.pushState({ pagina: pagina }, 'Página ' + pagina, url);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+<style>
+    .pagination-controls .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+        .pagination-controls .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+    .pagination-controls .badge {
+        height: 40px;
+    }
+</style>
+<style>
+    /* Page Title Styling */
+    .shelter-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #007bff, #00c6ff);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .shelter-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Shelter Badge */
+    .shelter-badge {
+        font-size: 2rem;
+        background: rgba(255,255,255,0.8);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Shelter Name Styling */
+    .shelter-name-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .shelter-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #007bff;
+        text-align: center;
+        position: relative;
+    }
+
+        .shelter-name::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 123, 255, 0.2);
+            z-index: -1;
+            transform: rotate(-1deg);
+        }
+
+    .shelter-card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .shelter-card-image {
+        height: 250px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .shelter-card:hover .shelter-card-image {
+        transform: scale(1.1);
+    }
+
+    .shelter-card-overlay {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .shelter-card-badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .shelter-characteristics {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+    }
+
+    .characteristic {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .characteristic-icon {
+        background-color: rgba(0, 123, 255, 0.1);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .characteristic-icon i {
+            font-size: 1.25rem;
+        }
+
+    .characteristic-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .characteristic-info .label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .characteristic-info .value {
+            font-weight: bold;
+            color: #333;
+        }
+
+    .capacity-container {
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .capacity-label {
+        font-size: 0.85rem;
+        color: #555;
+    }
+
+    .shelter-description {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        font-style: italic;
+        color: #555;
+    }
+
+    .description-text {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .view-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .shelter-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .view-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+</style>

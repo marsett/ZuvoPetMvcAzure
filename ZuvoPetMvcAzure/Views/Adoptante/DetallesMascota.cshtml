@@ -1,0 +1,1063 @@
+﻿@model Mascota
+
+@{
+    ViewData["Title"] = $"Conoce a {Model.Nombre}";
+    // Cálculo correcto de años y meses de edad
+    var fechaActual = DateTime.Now;
+    var fechaNacimiento = Model.FechaNacimiento;
+    var edad = fechaActual.Year - fechaNacimiento.Year;
+
+    // Ajuste si aún no ha llegado al mes y día de cumpleaños de este año
+    if (fechaNacimiento.Month > fechaActual.Month ||
+        (fechaNacimiento.Month == fechaActual.Month && fechaNacimiento.Day > fechaActual.Day))
+    {
+        edad--;
+    }
+
+    // Cálculo de meses
+    var meses = fechaActual.Month - fechaNacimiento.Month;
+    if (fechaActual.Day < fechaNacimiento.Day)
+    {
+        meses--;
+    }
+    if (meses < 0)
+    {
+        meses += 12;
+    }
+
+    string edadTexto = "";
+    if (edad > 0 && meses > 0)
+    {
+        edadTexto = $"{edad} año{(edad != 1 ? "s" : "")} y {meses} mes{(meses != 1 ? "es" : "")}";
+    }
+    else if (edad > 0)
+    {
+        edadTexto = $"{edad} año{(edad != 1 ? "s" : "")}";
+    }
+    else
+    {
+        edadTexto = $"{meses} mes{(meses != 1 ? "es" : "")}";
+    }
+
+    // Colores según especie con paleta mejorada
+    var colorPrincipal = Model.Especie.ToLower() == "perro" ? "#7E57C2" : // Violeta para perros
+                          Model.Especie.ToLower() == "gato" ? "#26A2D9" : // Azul para gatos (cambiado de verde)
+                          Model.Especie.ToLower() == "conejo" ? "#F06292" : // Rosa para conejos
+                          Model.Especie.ToLower() == "hámster" ? "#FFA726" : // Ámbar para hámsters
+                          Model.Especie.ToLower() == "hurón" ? "#AB47BC" : // Púrpura para hurones
+                          Model.Especie.ToLower() == "rata" ? "#8D6E63" : // Marrón para ratas
+                          Model.Especie.ToLower() == "erizo" ? "#5C6BC0" : // Índigo para erizos
+                          Model.Especie.ToLower() == "ardilla" ? "#FF7043" : // Naranja para ardillas
+                          "#9575CD"; // Violeta medio para otras especies
+
+    var colorSecundario = Model.Especie.ToLower() == "perro" ? "#B39DDB" : // Violeta claro
+                           Model.Especie.ToLower() == "gato" ? "#81D4FA" : // Azul claro (cambiado de verde)
+                           Model.Especie.ToLower() == "conejo" ? "#F8BBD0" : // Rosa claro
+                           Model.Especie.ToLower() == "hámster" ? "#FFCC80" : // Ámbar claro
+                           Model.Especie.ToLower() == "hurón" ? "#CE93D8" : // Púrpura claro
+                           Model.Especie.ToLower() == "rata" ? "#BCAAA4" : // Marrón claro
+                           Model.Especie.ToLower() == "erizo" ? "#9FA8DA" : // Índigo claro
+                           Model.Especie.ToLower() == "ardilla" ? "#FFAB91" : // Naranja claro
+                           "#B39DDB"; // Violeta claro para otras especies
+}
+
+@{
+    @Html.AntiForgeryToken()
+}
+
+<!-- Estilos personalizados con diseño moderno -->
+<style>
+    :root {
+        --color-primary: @colorPrincipal;
+        --color-secondary: @colorSecundario;
+        --color-light: #f8f9fa;
+        --color-dark: #343a40;
+        --border-radius: 16px;
+        --box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    body {
+        background-color: #f5f7fa;
+    }
+
+    /* Card principal con efecto de profundidad */
+    .pet-profile {
+        background-color: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+        margin-bottom: 40px;
+    }
+
+    /* Encabezado con efecto de paralaje */
+    .pet-header {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+    }
+
+        .pet-header img {
+            transition: transform 0.5s ease-out;
+        }
+
+    .pet-profile:hover .pet-header img {
+        transform: scale(1.05);
+    }
+
+    .pet-header-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+        padding: 50px 30px 30px;
+        color: white;
+        transform: translateY(0);
+        transition: var(--transition);
+    }
+
+    /* Avatar circular mejorado */
+    .pet-avatar {
+        position: absolute;
+        bottom: -50px;
+        left: 40px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 5px solid white;
+        object-fit: cover;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        z-index: 10;
+        transition: transform 0.3s ease;
+    }
+
+        .pet-avatar:hover {
+            transform: scale(1.05);
+        }
+
+    /* Contenido principal */
+    .pet-content {
+        padding-top: 80px;
+        padding-bottom: 40px;
+    }
+
+    /* Tags de información con efecto de hover */
+    .pet-tag {
+        border-radius: 30px;
+        padding: 8px 18px;
+        margin: 5px;
+        display: inline-block;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: white;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        transition: var(--transition);
+    }
+
+        .pet-tag:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+    /* Cards de secciones con animación de hover */
+    .section-card {
+        background-color: white;
+        border-radius: var(--border-radius);
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        box-shadow: var(--box-shadow);
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+        border-top: 4px solid transparent;
+    }
+
+        .section-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--color-primary);
+        }
+
+        /* Decorativo: Figuras de fondo */
+        .section-card::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: var(--color-secondary);
+            opacity: 0.05;
+            z-index: 0;
+            transition: var(--transition);
+        }
+
+        .section-card:hover::before {
+            transform: scale(1.2);
+        }
+
+    /* Titles con estilo moderno */
+    .section-title {
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: var(--color-dark);
+        display: inline-block;
+        position: relative;
+    }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--color-primary);
+            transition: var(--transition);
+        }
+
+    .section-card:hover .section-title::after {
+        width: 100%;
+    }
+
+    /* Tags de personalidad con efecto 3D */
+    .personality-tag {
+        padding: 10px 18px;
+        margin: 6px;
+        border-radius: 30px;
+        display: inline-block;
+        background-color: var(--color-primary);
+        color: white;
+        font-weight: 500;
+        transform: rotate(-1deg) translateZ(0);
+        box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
+        transition: var(--transition);
+        position: relative;
+        z-index: 1;
+    }
+
+        .personality-tag:nth-child(odd) {
+            transform: rotate(1deg) translateZ(0);
+        }
+
+        .personality-tag:hover {
+            transform: rotate(0) scale(1.05) translateZ(0);
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.15);
+        }
+
+    /* Compatibilidad con iconos animados */
+    .compatibility-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        transition: var(--transition);
+    }
+
+    .compatibility-item {
+        text-align: center;
+        padding: 20px 15px;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        cursor: default;
+    }
+
+        .compatibility-item:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-5px);
+        }
+
+            .compatibility-item:hover .compatibility-icon {
+                transform: scale(1.2);
+            }
+
+    /* Progreso de salud con transiciones */
+    .health-progress {
+        height: 10px;
+        border-radius: 5px;
+        margin-bottom: 30px;
+        background-color: #e9ecef;
+        overflow: hidden;
+    }
+
+    .health-progress-bar {
+        height: 100%;
+        border-radius: 5px;
+        background-color: var(--color-primary);
+        width: 0;
+        transition: width 1s ease-in-out;
+    }
+
+    /* Estado de salud con iconos animados */
+    .health-status {
+        display: inline-flex;
+        padding: 15px;
+        border-radius: 50%;
+        transition: var(--transition);
+    }
+
+        .health-status:hover {
+            transform: scale(1.1);
+        }
+
+        .health-status i {
+            transition: var(--transition);
+        }
+
+        .health-status:hover i {
+            transform: scale(1.2);
+        }
+
+    /* Formulario de adopción con efecto de levitación */
+    .adoption-form {
+        background-color: white;
+        border-radius: var(--border-radius);
+        padding: 30px;
+        box-shadow: var(--box-shadow);
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+
+        .adoption-form:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+    /* Botón de adopción con efecto push */
+    .adoption-btn {
+        border-radius: 30px;
+        padding: 12px 30px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        transition: var(--transition);
+    }
+
+        .adoption-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background-color: rgba(0,0,0,0.1);
+            transition: var(--transition);
+            z-index: -1;
+        }
+
+        .adoption-btn:hover {
+            transform: translateY(-3px);
+        }
+
+            .adoption-btn:hover::after {
+                height: 100%;
+            }
+
+    /* Mapa con sombra y borde */
+    .pet-map {
+        height: 300px;
+        width: 100%;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+        border: 3px solid white;
+        transition: var(--transition);
+    }
+
+        .pet-map:hover {
+            transform: scale(1.02);
+        }
+
+    /* Badge de estado con animación */
+    .status-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 10;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-weight: bold;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transition: var(--transition);
+    }
+
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+
+    /* Iconos de información con hover */
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-right: 15px;
+        background-color: var(--color-primary);
+        color: white;
+        transition: var(--transition);
+    }
+
+    .info-item:hover .info-icon {
+        transform: scale(1.1) rotate(10deg);
+    }
+
+    /* Efecto de huellas animadas */
+    .paw-print {
+        position: absolute;
+        opacity: 0.08;
+        pointer-events: none;
+        z-index: 0;
+        transition: all 15s ease-in-out;
+    }
+
+    .paw-container:hover .paw-print {
+        transform: translate(100px, 50px) rotate(45deg);
+    }
+
+    /* Formulario con inputs flotantes y efectos */
+    .floating-input {
+        position: relative;
+        margin-bottom: 28px;
+    }
+
+        .floating-input input,
+        .floating-input textarea {
+            width: 100%;
+            padding: 16px 18px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .floating-input label {
+            position: absolute;
+            top: 16px;
+            left: 18px;
+            color: #999;
+            transition: var(--transition);
+            pointer-events: none;
+            background-color: transparent;
+            padding: 0 5px;
+        }
+
+        .floating-input input:focus,
+        .floating-input textarea:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-secondary);
+            background-color: white;
+        }
+
+            .floating-input input:focus + label,
+            .floating-input textarea:focus + label,
+            .floating-input input:not(:placeholder-shown) + label,
+            .floating-input textarea:not(:placeholder-shown) + label {
+                top: -10px;
+                left: 15px;
+                font-size: 0.8rem;
+                color: var(--color-primary);
+                font-weight: 600;
+                background-color: white;
+            }
+
+    /* Animaciones de entrada con intersectionObserver */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-section {
+        opacity: 0;
+    }
+
+    .animate-in {
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    /* Indicador de scroll */
+    .scroll-indicator {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 2rem;
+        animation: bounce 2s infinite;
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0) translateX(-50%);
+        }
+
+        40% {
+            transform: translateY(-15px) translateX(-50%);
+        }
+
+        60% {
+            transform: translateY(-10px) translateX(-50%);
+        }
+    }
+
+    /* Add these styles to fix the responsive issues between 991px and 1108px */
+
+    /* First, let's fix the sticky element behavior */
+    @@edia (max-width: 1200px) {
+        .sticky-top {
+            position: static !important;
+            top: 0;
+            margin-bottom: 30px;
+        }
+    }
+
+    /* Improve adoption button and form responsiveness */
+    @@media (max-width: 1200px) {
+        .adoption-btn {
+            padding: 10px 15px;
+            font-size: 0.95rem;
+        }
+        /* Make text in adoption form smaller on medium screens */
+        .adoption-form p {
+            font-size: 0.95rem;
+        }
+        /* Add more bottom space to ensure proper spacing */
+        .adoption-form {
+            margin-bottom: 40px;
+        }
+    }
+
+    /* Further improvements for smaller screens */
+    @@media (max-width: 767px) {
+        .adoption-btn {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+        /* Stack elements better on mobile */
+        .info-item {
+            margin-bottom: 20px !important;
+        }
+        /* Make status badge smaller and more visible on mobile */
+        .status-badge {
+            padding: 6px 15px;
+            font-size: 0.85rem;
+            top: 15px;
+            right: 15px;
+        }
+        /* Adjust pet header height for better mobile viewing */
+        .pet-header {
+            height: 280px;
+        }
+    }
+
+    /* Fix grid in the compatibility section for better small screen layout */
+    @@media (max-width: 767px) {
+        .compatibility-item {
+            margin-bottom: 25px;
+        }
+
+        .compatibility-icon {
+            font-size: 2rem;
+        }
+    }
+    /* Fixes for Compatibility section responsiveness */
+
+    /* Improve spacing and prevent wrapping issues */
+    .compatibility-item h5 {
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    /* Improve scaling behaviors at different breakpoints */
+    @@media (min-width: 992px) and (max-width: 1199px) {
+        /* Adjust column widths for medium-large screens to prevent wrapping */
+        .compatibility-section .col-md-4 {
+            width: 33.333%;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+        /* Make icons slightly smaller */
+        .compatibility-icon {
+            font-size: 2.2rem;
+        }
+        /* Make badge text smaller */
+        .compatibility-item .badge {
+            font-size: 0.8rem !important;
+            padding: 0.25rem 0.5rem !important;
+        }
+    }
+
+    /* Further adjustments for medium screens */
+    @@media (min-width: 768px) and (max-width: 991px) {
+        /* On medium screens, adjust column behavior */
+        .compatibility-section .col-md-4 {
+            width: 33.333%;
+            float: left;
+        }
+        /* Minimize content to fit */
+        .compatibility-item h5 {
+            font-size: 0.9rem;
+        }
+
+        .compatibility-item .badge {
+            font-size: 0.75rem !important;
+            padding: 0.2rem 0.4rem !important;
+        }
+    }
+
+    /* Mobile screen fixes */
+    @@media (max-width: 767px) {
+        /* On mobile, stack items with better spacing */
+        .compatibility-item {
+            margin-bottom: 20px;
+            padding: 15px 10px;
+        }
+            /* Center badges and make them full width */
+            .compatibility-item .badge {
+                display: block;
+                width: 100%;
+                margin: 0 auto;
+            }
+    }
+</style>
+
+<div class="container my-5 position-relative paw-container">
+    <!-- Huellas decorativas animadas -->
+    <i class="bi bi-paw-fill paw-print" style="top: 10%; left: 5%; font-size: 4rem; transform: rotate(20deg);"></i>
+    <i class="bi bi-paw-fill paw-print" style="top: 40%; right: 7%; font-size: 3.5rem; transform: rotate(-15deg);"></i>
+    <i class="bi bi-paw-fill paw-print" style="bottom: 15%; left: 10%; font-size: 3.8rem; transform: rotate(10deg);"></i>
+    <i class="bi bi-paw-fill paw-print" style="bottom: 30%; right: 20%; font-size: 2.5rem; transform: rotate(-25deg);"></i>
+
+    <!-- Card principal del perfil -->
+    <div class="pet-profile">
+        <!-- Encabezado con foto panorámica -->
+        <div class="pet-header">
+
+            @if (!string.IsNullOrEmpty(Model.Foto))
+            {
+                <img src="~/images/@Model.Foto" class="w-100 h-100 object-fit-cover" alt="Foto de @Model.Nombre">
+            }
+            else
+            {
+                <img src="/img/mascota-default.jpg" class="w-100 h-100 object-fit-cover" alt="Sin foto disponible">
+            }
+
+            <div class="pet-header-overlay">
+                <h1 class="display-4 fw-bold mb-3">@Model.Nombre</h1>
+                <div class="d-flex flex-wrap mb-3">
+                    <div class="pet-tag" style="background-color: @colorPrincipal;">
+                        @Model.Especie
+                    </div>
+                    <div class="pet-tag" style="background-color: @colorPrincipal;">
+                        @Model.Sexo
+                    </div>
+                    <div class="pet-tag" style="background-color: @colorPrincipal;">
+                        @edadTexto
+                    </div>
+                    <div class="pet-tag" style="background-color: @colorPrincipal;">
+                        @Model.Tamano
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicador de scroll -->
+            <div class="scroll-indicator">
+                <i class="bi bi-chevron-double-down"></i>
+            </div>
+        </div>
+
+        <div class="pet-content container">
+            <div class="row">
+                <div class="@(Model.Estado == "Adoptado" ? "col-12" : "col-lg-8")">
+                    <!-- Acerca de la mascota -->
+                    <div class="section-card animate-section">
+                        <h3 class="section-title">Sobre @Model.Nombre</h3>
+                        @if (!string.IsNullOrEmpty(Model.Descripcion))
+                        {
+                            <p class="lead">@Html.Raw(Model.Descripcion.Replace("\n", "<br>"))</p>
+                        }
+                        else
+                        {
+                            <p class="lead fst-italic text-muted">No hay descripción disponible para @Model.Nombre.</p>
+                        }
+
+                        @* @if (Model.Vistas > 0)
+                        {
+                            <div class="text-muted mt-4 d-flex align-items-center">
+                                <i class="bi bi-eye-fill me-2 fs-5"></i>
+                                <span>@Model.Vistas persona@(Model.Vistas != 1 ? "s" : "") @(Model.Vistas != 1 ? "han" : "ha") visto el perfil de @Model.Nombre</span>
+                            </div>
+                        } *@
+                    </div>
+
+                    <!-- Datos de salud con animaciones -->
+                    <div class="section-card animate-section">
+                        <h3 class="section-title">Salud y cuidados</h3>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-@(Model.Castrado ? "check-circle-fill text-success" : "x-circle text-muted") me-2"></i>
+                                    Castrado/a
+                                </h6>
+                                <div class="health-progress">
+                                    <div class="health-progress-bar" data-progress="@(Model.Castrado ? "100" : "0")"
+                                         style="background-color: @colorPrincipal;"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-@(Model.Vacunado ? "check-circle-fill text-success" : "x-circle text-muted") me-2"></i>
+                                    Vacunado/a
+                                </h6>
+                                <div class="health-progress">
+                                    <div class="health-progress-bar" data-progress="@(Model.Vacunado ? "100" : "0")"
+                                         style="background-color: @colorPrincipal;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-@(Model.Desparasitado ? "check-circle-fill text-success" : "x-circle text-muted") me-2"></i>
+                                    Desparasitado/a
+                                </h6>
+                                <div class="health-progress">
+                                    <div class="health-progress-bar" data-progress="@(Model.Desparasitado ? "100" : "0")"
+                                         style="background-color: @colorPrincipal;"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="mb-2 d-flex align-items-center">
+                                    <i class="bi bi-@(Model.Microchip ? "check-circle-fill text-success" : "x-circle text-muted") me-2"></i>
+                                    Microchip
+                                </h6>
+                                <div class="health-progress">
+                                    <div class="health-progress-bar" data-progress="@(Model.Microchip ? "100" : "0")"
+                                         style="background-color: @colorPrincipal;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <h5 class="mt-3 fw-bold">
+                                Estado de salud:
+                                <span class="@(Model.Sano ? "text-success" : "text-danger")">
+                                    @(Model.Sano ? "Saludable" : "En tratamiento")
+                                </span>
+                            </h5>
+                        </div>
+                    </div>
+
+                    <!-- Personalidad con diseño más atractivo -->
+                    @if (!string.IsNullOrEmpty(Model.Personalidad))
+                    {
+                        <div class="section-card animate-section">
+                            <h3 class="section-title">Personalidad</h3>
+                            <div class="d-flex flex-wrap justify-content-center mt-4">
+                                @foreach (var rasgo in Model.Personalidad.Split(','))
+                                {
+                                    <span class="personality-tag">
+                                        @rasgo.Trim()
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Compatibilidad con mejores visuales -->
+                    <div class="section-card animate-section">
+                        <h3 class="section-title">Compatibilidad</h3>
+                        <!-- Replace the existing compatibility section row with this -->
+                        <div class="row text-center mt-4 compatibility-section">
+                            <div class="col-md-4 mb-4 mb-md-0">
+                                <div class="compatibility-item">
+                                    <i class="bi bi-people-fill compatibility-icon @(Model.CompatibleConAdultos ? "text-success" : "text-secondary")"></i>
+                                    <h5 class="fw-bold mb-3">Adultos</h5>
+                                    <div class="badge px-3 py-2 fs-6" style="background-color: @(Model.CompatibleConAdultos ? "#059669" : "#6c757d");">
+                                        <i class="bi bi-@(Model.CompatibleConAdultos ? "check-lg" : "x-lg") me-1"></i>
+                                        @(Model.CompatibleConAdultos ? "Compatible" : "No compatible")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4 mb-md-0">
+                                <div class="compatibility-item">
+                                    <i class="bi bi-person-heart compatibility-icon @(Model.CompatibleConNinos ? "text-success" : "text-secondary")"></i>
+                                    <h5 class="fw-bold mb-3">Niños</h5>
+                                    <div class="badge px-3 py-2 fs-6" style="background-color: @(Model.CompatibleConNinos ? "#059669" : "#6c757d");">
+                                        <i class="bi bi-@(Model.CompatibleConNinos ? "check-lg" : "x-lg") me-1"></i>
+                                        @(Model.CompatibleConNinos ? "Compatible" : "No compatible")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="compatibility-item">
+                                    <i class="bi bi-house-heart compatibility-icon @(Model.CompatibleConOtrosAnimales ? "text-success" : "text-secondary")"></i>
+                                    <h5 class="fw-bold mb-3">Otros animales</h5>
+                                    <div class="badge px-3 py-2 fs-6" style="background-color: @(Model.CompatibleConOtrosAnimales ? "#059669" : "#6c757d");">
+                                        <i class="bi bi-@(Model.CompatibleConOtrosAnimales ? "check-lg" : "x-lg") me-1"></i>
+                                        @(Model.CompatibleConOtrosAnimales ? "Compatible" : "No compatible")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                @if (Model.Estado != "Adoptado")
+    {
+                <div class="col-lg-4">
+                    <div class="sticky-top" style="top: 30px;">
+                        <!-- Información del refugio con hover -->
+                        @if (Model.IdRefugio != null && Model.Estado != "Adoptada")
+                        {
+                            <div class="section-card animate-section">
+                                <h3 class="section-title">Contacto</h3>
+                                <div class="info-item d-flex align-items-center mb-4 mt-4">
+                                    <div>
+                                        <div class="text-muted small">Refugio</div>
+                                        <div class="fw-bold fs-5 text-break">@(Model.Refugio?.NombreRefugio ?? "Información no disponible")</div>
+                                    </div>
+                                </div>
+                                <div class="info-item d-flex align-items-center mb-4 mt-4">
+                                    <div>
+                                        <div class="text-muted small">Acerca de</div>
+                                        <div class="fw-bold fs-5 text-break">@(Model.Refugio?.Usuario.PerfilUsuario.Descripcion ?? "Información no disponible")</div>
+                                    </div>
+                                </div>
+                                <div class="info-item d-flex align-items-center mb-4 mt-4">
+                                    <div>
+                                        <div class="text-muted small">Contacto</div>
+                                        <div class="fw-bold fs-5 text-break">@(Model.Refugio?.ContactoRefugio ?? "Información no disponible")</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Botón y formulario de adopción -->
+                        @if (Model.Estado == "Disponible")
+                        {
+                            <div id="adoptionAction" class="adoption-form animate-section">
+                                <h3 class="section-title mb-4">Solicitar adopción</h3>
+                                <div class="text-center py-3">
+                                    <p class="mb-4">Ya tienes un perfil registrado en nuestra plataforma. Haz clic en el botón para enviar tu solicitud de adopción para @Model.Nombre.</p>
+
+                                    <button id="btnAdoptar"
+                                       class="btn adoption-btn w-100" style="background-color: @colorPrincipal; color: white;">
+                                        <i class="bi bi-send me-2"></i>¡Quiero adoptar a @Model.Nombre!
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        @* else
+                        {
+
+                            <div id="adoptionAction" class="adoption-form animate-section">
+                                <h3 class="section-title mb-4">@Model.Nombre</h3>
+                                <div class="text-center py-3">
+                                    <p class="mb-4">Esta mascota ya ha sido adoptada y es feliz con sus nuevos dueños.</p>
+                                </div>
+                            </div>
+                        } *@
+                    </div>
+                </div>
+                }
+            </div>
+
+            <!-- Mapa de ubicación -->
+            @if (Model.Latitud != null && Model.Longitud != null && Model.Estado != "Adoptado")
+            {
+                <div class="section-card animate-section">
+                    <h3 class="section-title">Ubicación</h3>
+                    <div id="mapa" class="pet-map mt-4"></div>
+                </div>
+            }
+
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Verificar si ya existe una solicitud para esta mascota y este adoptante
+            const verificarSolicitudExistente = async () => {
+                try {
+                    const response = await fetch('@Url.Action("VerificarSolicitudExistente", "Adoptante")?idmascota=@Model.Id');
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.solicitudExiste) {
+                        $("#btnAdoptar").prop("disabled", true);
+                        $("#btnAdoptar").text("Solicitud ya enviada");
+                        $("#btnAdoptar").addClass("btn-secondary").removeClass("btn-primary");
+                    }
+                } catch (error) {
+                    console.error("Error al verificar solicitud:", error);
+                }
+            };
+
+            verificarSolicitudExistente();
+
+            // Manejar clic en botón de adopción
+            $("#btnAdoptar").click(function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: '¿Quieres adoptar a ' + '@Model.Nombre' + '?',
+                    text: 'Enviaremos tu solicitud de adopción al refugio',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, quiero adoptarle',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Enviar solicitud AJAX solo si confirma
+                        $.ajax({
+                            url: '@Url.Action("SolicitudAdopcion", "Adoptante")',
+                            type: 'POST',
+                            data: {
+                                idmascota: @Model.Id,
+                                // Incluir el token antiforgery en la data
+                                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            headers: {
+                                "X-Requested-With": "XMLHttpRequest"
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire(
+                                        '¡Solicitud enviada!',
+                                        'Tu solicitud para adoptar a ' + '@Model.Nombre' + ' ha sido registrada',
+                                        'success'
+                                    );
+                                    // Deshabilitar botón después de enviar
+                                    $("#btnAdoptar").prop("disabled", true);
+                                    $("#btnAdoptar").text("Solicitud ya enviada");
+                                    $("#btnAdoptar").addClass("btn-secondary").removeClass("btn-primary");
+                                } else {
+                                    Swal.fire(
+                                        'Error',
+                                        response.message || 'No se pudo procesar tu solicitud',
+                                        'error'
+                                    );
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error("Error en la solicitud:", xhr);
+                                Swal.fire(
+                                    'Error',
+                                    'Hubo un problema al procesar tu solicitud. Por favor, intenta nuevamente.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Script para animaciones de barras de progreso -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animación de progreso de barras de salud
+            const progressBars = document.querySelectorAll('.health-progress-bar');
+            progressBars.forEach(bar => {
+                setTimeout(() => {
+                    bar.style.width = bar.getAttribute('data-progress') + '%';
+                }, 300);
+            });
+
+            // Scroll suave para el indicador
+            document.querySelector('.scroll-indicator').addEventListener('click', function() {
+                window.scrollTo({
+                    top: window.innerHeight - 50,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+
+    @section Scripts {
+        <!-- Scripts de OpenStreetMap -->
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <script>
+            // Inicializar elementos con animaciones
+            document.addEventListener('DOMContentLoaded', function() {
+                    // Verificar si el elemento mapa existe y si las coordenadas son válidas
+            const mapaElement = document.getElementById('mapa');
+            @if (Model.Latitud != 0 && Model.Longitud != 0)
+            {
+                <text>
+                            if (mapaElement) {
+                                try {
+                                        const latString = '@Model.Latitud.ToString(System.Globalization.CultureInfo.InvariantCulture)';
+                                const lngString = '@Model.Longitud.ToString(System.Globalization.CultureInfo.InvariantCulture)';
+                                    // Convertir explícitamente a números
+                                        const lat = parseFloat(latString);
+                                const lng = parseFloat(lngString);
+                                    if (!isNaN(lat) && !isNaN(lng)) {
+                                        // Inicializar el mapa solo si las coordenadas son válidas
+                                        var map = L.map('mapa').setView([lat, lng], 13);
+                                        // Añadir capa de OpenStreetMap
+                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                        }).addTo(map);
+                                        // Añadir marcador en la ubicación de la mascota
+                                        var marker = L.marker([lat, lng]).addTo(map)
+                                            .bindPopup('@Model.Nombre se encuentra aquí')
+                                            .openPopup();
+                                    } else {
+                                        // Si las coordenadas no son válidas, mostrar mensaje
+                                        mapaElement.innerHTML = '<div class="alert alert-warning">Las coordenadas no son válidas</div>';
+                                    }
+                                } catch (error) {
+                                    console.error("Error al inicializar el mapa:", error);
+                                    mapaElement.innerHTML = '<div class="alert alert-danger">No se pudo cargar el mapa</div>';
+                                }
+                            }
+                </text>
+            }
+            else
+            {
+                <text>
+                            if (mapaElement) {
+                                mapaElement.innerHTML = '<div class="alert alert-info">No hay información de ubicación disponible</div>';
+                            }
+                </text>
+            }
+                // Función para animar elementos cuando aparecen en el viewport
+                const animateSections = function() {
+                    const sections = document.querySelectorAll('.animate-section');
+                    sections.forEach(section => {
+                        const sectionTop = section.getBoundingClientRect().top;
+                        const windowHeight = window.innerHeight;
+                        if (sectionTop < windowHeight * 0.85) {
+                            section.style.opacity = '1';
+                        }
+                    });
+                };
+                // Ejecutar animación al cargar y al hacer scroll
+                animateSections();
+                window.addEventListener('scroll', animateSections);
+            });
+        </script>
+    }

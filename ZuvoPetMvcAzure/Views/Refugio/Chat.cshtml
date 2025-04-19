@@ -1,0 +1,337 @@
+﻿@model ChatViewModel
+@{
+    ViewData["Title"] = "Chat con " + Model.NombreDestinatario;
+    @Html.AntiForgeryToken()
+    ;
+}
+
+<div class="chat-enhanced-container">
+    <div class="chat-wrapper">
+        <div class="chat-card">
+            <div class="chat-header">
+                <div class="chat-user-info">
+                    <img src="~/images/@Model.FotoDestinatario" alt="@Model.NombreDestinatario" class="chat-user-avatar">
+                    <div class="chat-user-details">
+                        <h4 class="chat-user-name">@Model.NombreDestinatario</h4>
+                    </div>
+                </div>
+                <a href="@Url.Action("Mensajes")" class="btn-back-conversations">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                @if (Model.Mensajes.Count == 0)
+                {
+                    <div class="no-messages-state">
+                        <div class="no-messages-icon">
+                            <i class="fas fa-comment-slash"></i>
+                        </div>
+                        <h3>No hay mensajes</h3>
+                        <p>Comienza la conversación con @Model.NombreDestinatario</p>
+                    </div>
+                }
+                else
+                {
+                    foreach (var mensaje in Model.Mensajes)
+                    {
+                        bool isCurrentUser = mensaje.IdEmisor == int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                        <div class="message @(isCurrentUser ? "message-sent" : "message-received")">
+                            <div class="message-content">
+                                <p>@mensaje.Contenido</p>
+                                <span class="message-timestamp">
+                                    @mensaje.Fecha.ToString("dd/MM HH:mm")
+                                </span>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="chat-input-area">
+                <form id="messageForm" class="message-form">
+                    <input type="hidden" id="destinatarioId" value="@Model.IdDestinatario" />
+                    <input type="text" id="mensajeInput" class="message-input" placeholder="Escribe un mensaje..." required />
+                    <button type="submit" class="btn-send-message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-enhanced-container {
+        max-width: 100%;
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .chat-wrapper {
+        padding: 1rem;
+    }
+
+    .chat-card {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #007bff 0%, #00c6ff 100%);
+        color: white;
+        padding: 1rem;
+    }
+
+    .chat-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .chat-user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+    }
+
+    .chat-user-name {
+        margin: 0;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .chat-user-status {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.8rem;
+    }
+
+    .btn-back-conversations {
+        color: white;
+        text-decoration: none;
+        background-color: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-back-conversations:hover {
+            background-color: rgba(255,255,255,0.3);
+        }
+
+    .chat-messages {
+        height: 500px;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: white;
+    }
+
+    .no-messages-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: #f1f3f5;
+        border-radius: 12px;
+    }
+
+    .no-messages-icon {
+        font-size: 5rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        display: flex;
+    }
+
+    .message-sent {
+        justify-content: flex-end;
+    }
+
+    .message-received {
+        justify-content: flex-start;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 0.75rem 1rem;
+        border-radius: 15px;
+        position: relative;
+    }
+
+    .message-sent .message-content {
+        background-color: #007bff;
+        color: white;
+        border-bottom-right-radius: 0;
+    }
+
+    .message-received .message-content {
+        background-color: #e9ecef;
+        color: #212529;
+        border-bottom-left-radius: 0;
+    }
+
+    .message-timestamp {
+        display: block;
+        font-size: 0.7rem;
+        margin-top: 0.5rem;
+        opacity: 0.7;
+    }
+
+    .chat-input-area {
+        background-color: #f1f3f5;
+        padding: 1rem;
+    }
+
+    .message-form {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .message-input {
+        flex-grow: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 30px;
+        font-size: 1rem;
+    }
+
+    .btn-send-message {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-send-message:hover {
+            background-color: #0056b3;
+        }
+
+    @@media (max-width: 600px) {
+        .chat-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .chat-user-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .message-content {
+            max-width: 90%;
+        }
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Get the anti-forgery token
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        // Scroll al final del chat
+        var chatContainer = document.getElementById('chatMessages');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Configurar conexión SignalR
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .build();
+
+        // Iniciar conexión
+        connection.start()
+            .then(() => {
+                console.log("Conexión establecida con SignalR");
+                // Conectar al grupo del usuario actual
+                connection.invoke("ConectarUsuario", "@User.FindFirst(ClaimTypes.NameIdentifier).Value");
+            })
+            .catch(err => console.error("Error al conectar: " + err));
+
+        // Función para formatear la fecha
+        function formatDate(date) {
+            return new Date(date).toLocaleString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Función para agregar mensaje al chat
+        function agregarMensajeAlChat(mensaje, esMensajePropio, fecha = new Date()) {
+            const messageHtml = `
+                <div class="message ${esMensajePropio ? "message-sent" : "message-received"}">
+                    <div class="message-content">
+                        <p>${mensaje}</p>
+                        <span class="message-timestamp">
+                            ${formatDate(fecha)}
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            $('#chatMessages').append(messageHtml);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Función para recibir mensajes
+        connection.on("RecibirMensaje", function (emisorId, mensaje, fecha) {
+            const isCurrentUser = emisorId == '@User.FindFirst(ClaimTypes.NameIdentifier).Value';
+            agregarMensajeAlChat(mensaje, isCurrentUser, fecha);
+        });
+
+        // Enviar mensaje
+        $('#messageForm').submit(function (e) {
+            e.preventDefault();
+
+            const destinatarioId = $('#destinatarioId').val();
+            const contenido = $('#mensajeInput').val().trim();
+
+            if (!contenido) return;
+
+            // Agregar mensaje inmediatamente al chat
+            agregarMensajeAlChat(contenido, true);
+
+            $.ajax({
+                url: '@Url.Action("EnviarMensaje")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: token,
+                    destinatarioId: destinatarioId,
+                    contenido: contenido
+                },
+                headers: {
+                    "RequestVerificationToken": token
+                },
+                success: function (result) {
+                    $('#mensajeInput').val('');
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al enviar mensaje:", {
+                        status: xhr.status,
+                        responseText: xhr.responseText,
+                        error: error
+                    });
+                    // Eliminar el mensaje agregado si hay un error
+                    $('#chatMessages .message:last-child').remove();
+                    alert('Error al enviar mensaje: ' + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>

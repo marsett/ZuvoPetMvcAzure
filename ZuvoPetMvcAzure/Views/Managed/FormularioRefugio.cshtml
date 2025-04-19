@@ -1,0 +1,343 @@
+﻿@model Refugio
+
+@{
+    ViewData["Title"] = "Registrar Refugio";
+}
+
+<div class="container-fluid px-4 py-5 login-container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="pet-page-title text-center mb-4">
+                <span class="title-highlight">Registra</span> tu
+                <span class="title-highlight">refugio</span> animal
+                <span class="title-emoji">🏠🐾</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-body p-4">
+                    <form method="post" class="login-form">
+                        <div class="form-floating mb-3">
+                            <input asp-for="NombreRefugio" class="form-control" id="NombreRefugio" placeholder="Nombre del Refugio" required />
+                            <label asp-for="NombreRefugio">Nombre del Refugio</label>
+                            <span asp-validation-for="NombreRefugio" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="ContactoRefugio" class="form-control" id="ContactoRefugio" placeholder="Teléfono de Contacto" />
+                            <label asp-for="ContactoRefugio">Teléfono de Contacto</label>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input asp-for="CapacidadMaxima" type="number" class="form-control" id="CapacidadMaxima" placeholder="0" required />
+                            <label asp-for="CapacidadMaxima">Capacidad Máxima Mascotas</label>
+                        </div>
+
+                        <input asp-for="CantidadAnimales" type="hidden" />
+
+                        <!-- Mapa interactivo -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-2">Ubicación del Refugio</label>
+                            <div id="map" class="rounded shadow-sm" style="height: 400px;"></div>
+
+                            <!-- Campos ocultos para enviar los datos -->
+                            <input type="hidden" asp-for="Latitud" id="Latitud" />
+                            <input type="hidden" asp-for="Longitud" id="Longitud" />
+                            <input type="hidden" name="LatitudStr" id="LatitudStr" />
+                            <input type="hidden" name="LongitudStr" id="LongitudStr" />
+
+                            <!-- Campos de visualización para el usuario -->
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" id="LatitudDisplay" class="form-control" placeholder="Latitud" readonly />
+                                        <label for="LatitudDisplay">Latitud</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" id="LongitudDisplay" class="form-control" placeholder="Longitud" readonly />
+                                        <label for="LongitudDisplay">Longitud</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="ubicacion-status" class="text-muted mt-1 text-center fw-light">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                Haz clic en el mapa para seleccionar la ubicación del refugio
+                            </p>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn botoninicio btn-lg shadow-sm adopt-btn w-100">
+                                <i class="fas fa-paw me-2"></i>Registrar Refugio
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet.js -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<style>
+    .botoninicio {
+        background-color: #000039;
+        color: #ffffff;
+        border: none;
+    }
+
+        .botoninicio:hover {
+            background-color: transparent;
+            color: #bab986;
+            border: 2px solid #bab986;
+        }
+    /* Page Title Styling */
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #bab986, #bab986);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Card styling */
+    .card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+        .card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+    /* Form styling */
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e1e5ea;
+        padding: 1.5rem 1rem 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: none;
+            border-color: #bab986;
+            border-width: 2px;
+        }
+
+    .form-floating label {
+        padding: 1rem;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+    }
+
+        .form-check-input:checked {
+            background-color: #000039;
+            border-color: #000039;
+        }
+
+    .form-check-label {
+        cursor: pointer;
+    }
+
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+    }
+
+    /* Map styling */
+    #map {
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 2px solid #e1e5ea;
+    }
+
+        #map:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+    /* Button styling */
+    .adopt-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+    }
+
+        .adopt-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .adopt-btn:active {
+            transform: translateY(0);
+        }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .pet-page-title {
+            font-size: 2rem;
+        }
+    }
+
+    .login-container {
+        background-color: #f8f9fa;
+        padding: 3rem 0;
+        border-radius: 15px;
+        margin: 2rem auto;
+    }
+
+    .login-form {
+        padding: 1rem;
+    }
+
+    .text-danger {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Status indicator styling */
+    .text-success {
+        color: #28a745 !important;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+    var map = L.map('map').setView([40.4168, -3.7038], 7); // Coordenadas de Madrid, España
+
+    // Añadir capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var marker;
+    var statusElement = document.getElementById('ubicacion-status');
+    var latitudInput = document.getElementById('Latitud');
+    var longitudInput = document.getElementById('Longitud');
+    var latitudStrInput = document.getElementById('LatitudStr');
+    var longitudStrInput = document.getElementById('LongitudStr');
+    var latitudDisplay = document.getElementById('LatitudDisplay');
+    var longitudDisplay = document.getElementById('LongitudDisplay');
+
+    // Cuando se hace clic en el mapa, actualizar latitud y longitud
+    map.on('click', function (e) {
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng).addTo(map);
+        }
+
+        // Validar que las coordenadas estén en rangos válidos
+        if (e.latlng.lat >= -90 && e.latlng.lat <= 90 &&
+            e.latlng.lng >= -180 && e.latlng.lng <= 180) {
+
+            // Guardar los valores con notación de punto decimal en formato invariant
+            const latValue = e.latlng.lat;
+            const lngValue = e.latlng.lng;
+
+            // Guardar los valores como números
+            latitudInput.value = latValue;
+            longitudInput.value = lngValue;
+
+            // Guardar las representaciones string con punto decimal usando toLocaleString con 'en-US'
+            latitudStrInput.value = latValue.toString().replace(',', '.');
+            longitudStrInput.value = lngValue.toString().replace(',', '.');
+
+            // Para mostrar al usuario, podemos formatear con precisión fija
+            latitudDisplay.value = latValue.toFixed(6);
+            longitudDisplay.value = lngValue.toFixed(6);
+
+            // Mostrar mensaje de confirmación
+            statusElement.innerHTML = '<i class="fas fa-check-circle me-1"></i> Ubicación seleccionada: ' + latValue.toFixed(6) + ', ' + lngValue.toFixed(6);
+            statusElement.className = 'text-success mt-1 text-center';
+
+            // Debug
+            console.log("Coordenadas seleccionadas:", {
+                latitud: latitudInput.value,
+                longitud: longitudInput.value,
+                latitudStr: latitudStrInput.value,
+                longitudStr: longitudStrInput.value
+            });
+        } else {
+            statusElement.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Error: Coordenadas fuera de rango';
+            statusElement.className = 'text-danger mt-1 text-center';
+        }
+    });
+
+    // Validación del formulario
+    document.querySelector('form').addEventListener('submit', function(event) {
+        if (!latitudInput.value || !longitudInput.value) {
+            event.preventDefault();
+            statusElement.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Por favor, selecciona una ubicación en el mapa';
+            statusElement.className = 'text-danger mt-1 text-center';
+            return;
+        }
+
+        // Validar que las coordenadas estén en rangos válidos
+        const lat = parseFloat(latitudInput.value);
+        const lng = parseFloat(longitudInput.value);
+
+        if (isNaN(lat) || isNaN(lng) ||
+            lat < -90 || lat > 90 ||
+            lng < -180 || lng > 180) {
+
+            event.preventDefault();
+            statusElement.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Error: Coordenadas inválidas';
+            statusElement.className = 'text-danger mt-1 text-center';
+            return;
+        }
+
+        // Asegurarse de que los valores string siempre usan punto decimal
+        latitudStrInput.value = lat.toString().replace(',', '.');
+        longitudStrInput.value = lng.toString().replace(',', '.');
+
+        // Debug antes de enviar
+        console.log("Enviando formulario con valores:", {
+            latitud: latitudInput.value,
+            longitud: longitudInput.value,
+            latitudStr: latitudStrInput.value,
+            longitudStr: longitudStrInput.value
+        });
+    });
+</script>

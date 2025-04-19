@@ -1,0 +1,251 @@
+﻿@model HistoriaExito
+@{
+    ViewData["Title"] = "Crear Historia de Éxito";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Encabezado con estilo mejorado -->
+    <div class="panel-welcome-container position-relative mb-5">
+        <div class="decorative-paw decorative-paw-1">🐾</div>
+        <div class="decorative-paw decorative-paw-2">🐾</div>
+        <div class="text-center py-4">
+            <h1 class="panel-welcome-title">
+                <i class="fas fa-heart"></i> Comparte tu Historia de Éxito
+            </h1>
+            <p class="panel-welcome-subtitle">
+                Cuéntanos cómo ha cambiado tu vida desde que adoptaste a tu mascota
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg overflow-hidden mb-5">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Crear Nueva Historia</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CrearHistoriaExito" enctype="multipart/form-data" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+
+                        <input type="hidden" asp-for="IdAdoptante" value="@ViewBag.IdAdoptante" />
+
+                        <div class="mb-4">
+                            <label asp-for="Titulo" class="form-label fw-bold">Título de tu historia</label>
+                            <input asp-for="Titulo" class="form-control form-control-lg" placeholder="Un título que resuma tu experiencia" />
+                            <span asp-validation-for="Titulo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="IdMascota" class="form-label fw-bold">Mascota adoptada</label>
+                            <select asp-for="IdMascota" class="form-select form-select-lg" asp-items="ViewBag.Mascotas">
+                                <option value="">-- Selecciona la mascota --</option>
+                            </select>
+                            <span asp-validation-for="IdMascota" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Descripcion" class="form-label fw-bold">Tu historia</label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="10" placeholder="Cuéntanos cómo ha sido tu experiencia de adopción..."></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4 position-relative">
+                            <label class="form-label fw-bold">Sube una foto con tu mascota</label>
+                            <div id="preview" class="text-center border rounded p-4" style="min-height: 150px; max-height: 250px; cursor: pointer;" onclick="document.getElementById('fichero').click();">
+                                <i class="fas fa-paw fa-3x text-muted"></i>
+                                <p class="mt-2 mb-0 text-muted">Selecciona una foto</p>
+                            </div>
+                            <input type="file" id="fichero" name="fichero" accept="image/*" style="display: none;" />
+                            <div class="form-text">Comparte una imagen que muestre tu vida con tu mascota adoptada.</div>
+                        </div>
+
+                        <div class="border-top pt-4 mt-4">
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="HistoriasExito" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>Publicar Historia
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de consejos -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-header bg-info text-white py-3">
+                    <h4 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Consejos para una gran historia</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-camera fa-3x text-info"></i>
+                            </div>
+                            <h5 class="text-center">Incluye fotos claras</h5>
+                            <p class="text-center text-muted">Las fotos de buena calidad ayudan a transmitir mejor tu experiencia.</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-heart fa-3x text-danger"></i>
+                            </div>
+                            <h5 class="text-center">Sé personal</h5>
+                            <p class="text-center text-muted">Comparte cómo la adopción cambió tu vida y la de tu mascota.</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-comment fa-3x text-success"></i>
+                            </div>
+                            <h5 class="text-center">Cuenta anécdotas</h5>
+                            <p class="text-center text-muted">Los pequeños momentos especiales son los que más conectan con los lectores.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+        // Manejar la vista previa de imágenes
+        const fotoInput = document.getElementById('fichero');
+        const previewContainer = document.getElementById('preview');
+
+        fotoInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                // Mostrar preview de la imagen
+                const file = this.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" class="img-fluid" style="max-height: 220px; width: auto; object-fit: contain;" />`;
+                }
+
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>
+<style>
+    /* Estilos del encabezado del panel */
+    .panel-welcome-container {
+        position: relative;
+        background: linear-gradient(135deg, #f6f8f9 0%, #e5ebee 100%);
+        padding: 3rem 0;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .panel-welcome-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+        .panel-welcome-title i {
+            color: #e74c3c;
+            margin-right: 10px;
+        }
+
+    .panel-welcome-subtitle {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin-bottom: 0;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Paws decorativas */
+    .decorative-paw {
+        position: absolute;
+        opacity: 0.1;
+        font-size: 10rem;
+        z-index: 0;
+    }
+
+    .decorative-paw-1 {
+        top: -50px;
+        left: -50px;
+        transform: rotate(-20deg);
+    }
+
+    .decorative-paw-2 {
+        bottom: -50px;
+        right: -50px;
+        transform: rotate(20deg);
+    }
+
+    /* Estilo para las tarjetas */
+    .card {
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+        }
+
+    .card-header {
+        border-top-left-radius: 15px !important;
+        border-top-right-radius: 15px !important;
+    }
+
+    /* Estilo para los inputs */
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ced4da;
+        transition: all 0.3s;
+    }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            border-color: #86b7fe;
+        }
+
+    /* Botones personalizados */
+    .btn {
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(to right, #007bff, #0056b3);
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, #0056b3, #003b7a);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+    .btn-outline-secondary:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Animación para los iconos de consejos */
+    .fas.fa-3x {
+        transition: all 0.3s ease;
+    }
+
+        .fas.fa-3x:hover {
+            transform: scale(1.2);
+        }
+</style>

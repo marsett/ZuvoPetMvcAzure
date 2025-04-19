@@ -1,0 +1,706 @@
+﻿@model Refugio
+@{
+    string colorPrincipal = "#3182CE"; // Color azul para refugios
+}
+<div class="container my-5 position-relative paw-container">
+    <!-- Huellas decorativas animadas -->
+    <i class="bi bi-paw-fill paw-print" style="top: 10%; left: 5%; font-size: 4rem; transform: rotate(20deg);"></i>
+    <i class="bi bi-paw-fill paw-print" style="top: 40%; right: 7%; font-size: 3.5rem; transform: rotate(-15deg);"></i>
+    <i class="bi bi-paw-fill paw-print" style="bottom: 15%; left: 10%; font-size: 3.8rem; transform: rotate(10deg);"></i>
+    <i class="bi bi-paw-fill paw-print" style="bottom: 30%; right: 20%; font-size: 2.5rem; transform: rotate(-25deg);"></i>
+
+    <!-- Card principal del perfil del refugio -->
+    <div class="shelter-profile">
+        <!-- Encabezado con foto panorámica -->
+        <div class="shelter-header">
+            @if (Model?.Usuario?.PerfilUsuario != null && !string.IsNullOrEmpty(Model.Usuario.PerfilUsuario.FotoPerfil))
+            {
+                <img src="~/images/@Model.Usuario.PerfilUsuario.FotoPerfil" class="w-100 h-100 object-fit-cover" alt="Imagen del refugio @Model.NombreRefugio">
+            }
+            else
+            {
+                <img src="~/images/default-shelter.jpg" class="w-100 h-100 object-fit-cover" alt="Imagen predeterminada del refugio">
+            }
+            
+
+            <div class="shelter-header-overlay">
+                <h1 class="display-4 fw-bold mb-3">@Model.NombreRefugio</h1>
+                <div class="d-flex flex-wrap mb-3">
+                    <div class="shelter-tag" style="background-color: @colorPrincipal;">
+                        Refugio de animales
+                    </div>
+                    <div class="shelter-tag" style="background-color: @colorPrincipal;">
+                        @* @Model.ListaMascotas?.Count(m => m.Estado == "Disponible") animales *@
+                        @Model.CantidadAnimales animales
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicador de scroll -->
+            <div class="scroll-indicator">
+                <i class="bi bi-chevron-double-down"></i>
+            </div>
+        </div>
+
+        <div class="shelter-content container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Acerca del refugio -->
+                    <div class="section-card animate-section">
+                        <h3 class="section-title">Sobre @Model.NombreRefugio</h3>
+                        @if (!string.IsNullOrEmpty(Model.Usuario.PerfilUsuario.Descripcion))
+                        {
+                            <p class="lead">@Html.Raw(Model.Usuario.PerfilUsuario.Descripcion.Replace("\n", "<br>"))</p>
+                        }
+                        else
+                        {
+                            <p class="lead fst-italic text-muted">No hay descripción disponible para @Model.NombreRefugio.</p>
+                        }
+                    </div>
+
+                    <!-- Capacidad del refugio con animaciones -->
+                    <div class="section-card animate-section">
+                        <h3 class="section-title">Capacidad del refugio</h3>
+                        <div class="row mb-4">
+                            <div class="col-12 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 d-flex align-items-center">
+                                        <i class="bi bi-house-heart-fill me-2"></i>
+                                        Ocupación actual
+                                    </h6>
+                                    <span class="fw-bold">@* @Model.ListaMascotas?.Count(m => m.Estado == "Disponible") *@ @Model.CantidadAnimales de @Model.CapacidadMaxima</span>
+                                </div>
+                                @{
+                                    var porcentajeOcupacion = (int)((double)@Model.ListaMascotas?.Count(m => m.Estado == "Disponible") / Model.CapacidadMaxima * 100);
+                                    var colorOcupacion = porcentajeOcupacion < 60 ? "#10B981" : // Verde
+                                    porcentajeOcupacion < 80 ? "#FBBF24" : // Amarillo
+                                    "#EF4444"; // Rojo
+                                }
+                                <div class="capacity-progress">
+                                    <div class="capacity-progress-bar" data-progress="@porcentajeOcupacion"
+                                         style="background-color: @colorOcupacion; width: @porcentajeOcupacion%;"></div>
+                                </div>
+                                <div class="text-end mt-1">
+                                    <span class="small text-muted">@porcentajeOcupacion% de ocupación</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mascotas disponibles en el refugio con paginación mejorada -->
+                    <div class="section-card animate-section">
+                        <h3 class="section-title">Mascotas disponibles (@Model.ListaMascotas?.Count(m => m.Estado == "Disponible"))</h3>
+
+                        @if (Model.ListaMascotas != null && Model.ListaMascotas.Any(m => m.Estado == "Disponible") && Model.ListaMascotas.Count() != 0)
+                        {
+                            <div class="pet-carousel mt-4 position-relative">
+                                @{
+                                    var mascotasDisponibles = Model.ListaMascotas.Where(m => m.Estado == "Disponible").ToList();
+                                    var totalMascotas = mascotasDisponibles.Count;
+                                }
+
+                                @for (int i = 0; i < mascotasDisponibles.Count; i++)
+                                {
+                                    var mascota = mascotasDisponibles[i];
+                                    <div class="pet-slide @(i == 0 ? "active" : "")" data-index="@i">
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-8">
+                                                <div class="pet-card position-relative">
+                                                    @if (!string.IsNullOrEmpty(mascota.Foto))
+                                                    {
+                                                        <img src="~/images/@mascota.Foto" class="w-100 pet-image" alt="Foto de @mascota.Nombre">
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="/img/mascota-default.jpg" class="w-100 pet-image" alt="Sin foto disponible">
+                                                    }
+
+                                                    <div class="p-4">
+                                                        <h5 class="fw-bold mb-3">@mascota.Nombre</h5>
+                                                        <a asp-controller="Adoptante"
+                                                           asp-action="DetallesMascota"
+                                                           asp-route-idmascota="@mascota.Id"
+                                                           class="btn btn-primary btn-lg w-100">
+                                                            Más sobre @mascota.Nombre
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (totalMascotas > 1)
+                                {
+                                    <div class="nav-arrow prev-pet" id="prevPet">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </div>
+                                    <div class="nav-arrow next-pet" id="nextPet">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Controles de paginación mejorados -->
+                            <div class="pagination-controls my-4">
+                                <div class="page-indicator">
+                                    <span id="currentPage">1</span> de <span id="totalPages">@totalMascotas</span>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info mt-4">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Este refugio no tiene mascotas disponibles para adopción en este momento.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="sticky-top" style="top: 30px;">
+                        <!-- Información de contacto -->
+                        <div class="section-card animate-section">
+                            <h3 class="section-title">Contacto</h3>
+                            <div class="info-item d-flex align-items-center mb-4 mt-4">
+                                <div>
+                                    <div class="text-muted small">Refugio</div>
+                                    <div class="fw-bold fs-5 text-break">@(Model.NombreRefugio ?? "Información no disponible")</div>
+                                </div>
+                            </div>
+                            <div class="info-item d-flex align-items-center mb-4 mt-4">
+                                <div>
+                                    <div class="text-muted small">Acerca de</div>
+                                    <div class="fw-bold fs-5 text-break">@(Model.Usuario.PerfilUsuario.Descripcion ?? "Información no disponible")</div>
+                                </div>
+                            </div>
+                            <div class="info-item d-flex align-items-center mb-4 mt-4">
+                                <div>
+                                    <div class="text-muted small">Contacto</div>
+                                    <div class="fw-bold fs-5 text-break">@(Model.ContactoRefugio ?? "Información no disponible")</div>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Botón de contacto -->
+                        <div class="section-card animate-section">
+                            <h3 class="section-title mb-4">Contactar al refugio</h3>
+                            <div class="text-center py-3">
+                                <p class="mb-4">¿Quieres colaborar o tienes preguntas sobre este refugio? Contacta directamente con ellos.</p>
+
+                                <a href="@Url.Action("IniciarChat", new { refugioId = Model.Id })" class="btn btn-primary">
+                                    <i class="fa fa-comment"></i> Contactar
+                                </a>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapa de ubicación -->
+            @if (Model.Latitud != 0 && Model.Longitud != 0)
+            {
+                <div class="section-card animate-section">
+                    <h3 class="section-title">Ubicación</h3>
+                    <div id="mapa" class="shelter-map mt-4"></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        /* Estilos específicos para la página de detalles de refugio */
+        .shelter-profile {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .shelter-header {
+            height: 350px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shelter-header-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: white;
+        }
+
+        .section-card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+            .section-title::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 80px;
+                height: 2px;
+                background-color: @colorPrincipal;
+            }
+
+        .shelter-tag {
+            background-color: @colorPrincipal;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-right: 0.75rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+
+        .info-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+            .info-item:last-child {
+                border-bottom: none;
+            }
+
+        .capacity-progress {
+            height: 0.75rem;
+            background-color: #e2e8f0;
+            border-radius: 1rem;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .capacity-progress-bar {
+            height: 100%;
+            width: 0;
+            border-radius: 1rem;
+            transition: width 1.5s ease;
+        }
+
+        .animate-section {
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .pet-card {
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+            .pet-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            }
+
+        .pet-image {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .pet-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+        }
+
+        .shelter-map {
+            height: 400px;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @@keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+
+            40% {
+                transform: translateY(-15px) translateX(-50%);
+            }
+
+            60% {
+                transform: translateY(-7px) translateX(-50%);
+            }
+        }
+
+        .paw-print {
+            position: absolute;
+            opacity: 0.1;
+            color: @colorPrincipal;
+            animation: fadeInOut 10s infinite ease-in-out;
+            z-index: -1;
+        }
+
+        @@keyframes fadeInOut {
+            0%, 100% {
+                opacity: 0.05;
+            }
+
+            50% {
+                opacity: 0.15;
+            }
+        }
+
+        /* Estilos para contactar al refugio */
+        .contact-btn {
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+            .contact-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+
+        /* Estilos mejorados para la paginación */
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .page-indicator span {
+            margin: 0 5px;
+        }
+
+        .page-indicator {
+            background-color: @colorPrincipal;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+            transition: all 0.3s ease;
+        }
+
+            .page-indicator:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            }
+
+        .pet-carousel {
+            position: relative;
+            min-height: 350px;
+        }
+
+        .pet-slide {
+            display: none;
+            animation: fadeEffect 0.5s;
+        }
+
+            .pet-slide.active {
+                display: block;
+            }
+
+        @@keyframes fadeEffect {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+
+            .nav-arrow:hover {
+                background-color: @colorPrincipal;
+                color: white;
+            }
+
+        .prev-pet {
+            left: -20px;
+        }
+
+        .next-pet {
+            right: -20px;
+        }
+
+        /* Estilos para dispositivos móviles */
+        @@media (max-width: 768px) {
+            .shelter-header {
+                height: 250px;
+            }
+
+            .nav-arrow {
+                width: 35px;
+                height: 35px;
+            }
+
+            .prev-pet {
+                left: -10px;
+            }
+
+            .next-pet {
+                right: -10px;
+            }
+        }
+    </style>
+}
+<!-- Scripts de OpenStreetMap -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    const mapaElement = document.getElementById('mapa');
+    @if (Model.Latitud != 0 && Model.Longitud != 0)
+    {
+        // Convertir valores a formato invariante con punto decimal
+        <text>
+                    if (mapaElement) {
+                        try {
+                            // Obtener coordenadas como string y asegurar que usan punto como separador decimal
+                            // Usar CultureInfo.InvariantCulture para forzar el formato con punto
+                            const latString = '@Model.Latitud.ToString(System.Globalization.CultureInfo.InvariantCulture)';
+                            const lngString = '@Model.Longitud.ToString(System.Globalization.CultureInfo.InvariantCulture)';
+
+                            // Convertir a números usando parseFloat
+                            const lat = parseFloat(latString);
+                            const lng = parseFloat(lngString);
+
+                            console.log("Coordenadas cargadas:", {
+                                latString: latString,
+                                lngString: lngString,
+                                lat: lat,
+                                lng: lng
+                            });
+
+                            if (!isNaN(lat) && !isNaN(lng)) {
+                                // Verificar si Leaflet está cargado correctamente
+                                if (typeof L !== 'undefined' && typeof L.map === 'function') {
+                                    // Inicializar el mapa solo si las coordenadas son válidas
+                                            
+                                            var map = L.map('mapa').setView([lat, lng], 13);  
+
+        
+                                    // Añadir capa de OpenStreetMap
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    }).addTo(map);
+                                        // Invertir los valores al crear el marcador
+            var marker = L.marker([lat, lng]).addTo(map)  
+                                        .bindPopup('@Model.NombreRefugio se encuentra aquí')
+                                        .openPopup();
+                                } else {
+                                    console.error("Leaflet no está cargado correctamente");
+                                    mapaElement.innerHTML = '<div class="alert alert-warning">No se pudo cargar el mapa: biblioteca no disponible</div>';
+                                }
+                            } else {
+                                // Si las coordenadas no son válidas, mostrar mensaje
+                                mapaElement.innerHTML = '<div class="alert alert-warning">Las coordenadas no son válidas: ' + latString + ', ' + lngString + '</div>';
+                            }
+                        } catch (error) {
+                            console.error("Error al inicializar el mapa:", error);
+                            mapaElement.innerHTML = '<div class="alert alert-danger">No se pudo cargar el mapa: ' + error.message + '</div>';
+                        }
+                    }
+        </text>
+    }
+    else
+    {
+        <text>
+                    if (mapaElement) {
+                        mapaElement.innerHTML = '<div class="alert alert-info">No hay información de ubicación disponible</div>';
+                    }
+        </text>
+    }
+</script>
+
+    
+    <script>
+        // Inicializar elementos con animaciones
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+
+         // Verificar si el elemento mapa existe y si las coordenadas son válidas
+    
+                // Inicializar barras de progreso
+                const progressBars = document.querySelectorAll('.capacity-progress-bar');
+                if (progressBars && progressBars.length > 0) {
+                    progressBars.forEach(bar => {
+                        if (bar && bar.getAttribute) {
+                            const progress = bar.getAttribute('data-progress');
+                            if (progress) {
+                                bar.style.width = progress + '%';
+                            }
+                        }
+                    });
+                }
+
+                // Función para animar elementos cuando aparecen en el viewport
+                const animateSections = function() {
+                    const sections = document.querySelectorAll('.animate-section');
+                    if (sections && sections.length > 0) {
+                        sections.forEach(section => {
+                            if (section && section.getBoundingClientRect) {
+                                const sectionTop = section.getBoundingClientRect().top;
+                                const windowHeight = window.innerHeight;
+                                if (sectionTop < windowHeight * 0.85) {
+                                    section.style.opacity = '1';
+                                    section.style.transform = 'translateY(0)';
+                                }
+                            }
+                        });
+                    }
+                };
+
+                // Ejecutar animación al cargar y al hacer scroll
+                animateSections();
+                window.addEventListener('scroll', animateSections);
+
+                // Funcionalidad de paginación para mascotas
+                const petSlides = document.querySelectorAll('.pet-slide');
+                const totalSlides = petSlides ? petSlides.length : 0;
+                const prevBtn = document.getElementById('prevPet');
+                const nextBtn = document.getElementById('nextPet');
+                const currentPageEl = document.getElementById('currentPage');
+
+                // Solo inicializar el carrusel si hay slides y elementos de navegación
+                if (totalSlides > 0 && currentPageEl) {
+                    let currentSlide = 0;
+
+                    function showSlide(index) {
+                        // Ocultar todos los slides
+                        petSlides.forEach(slide => {
+                            if (slide && slide.classList) {
+                                slide.classList.remove('active');
+                            }
+                        });
+
+                        // Mostrar el slide actual si existe
+                        if (petSlides[index] && petSlides[index].classList) {
+                            petSlides[index].classList.add('active');
+                        }
+
+                        // Actualizar indicador
+                        currentPageEl.textContent = index + 1;
+
+                        // Guardar índice actual
+                        currentSlide = index;
+                    }
+
+                    function nextSlide() {
+                        let newIndex = currentSlide + 1;
+                        if (newIndex >= totalSlides) {
+                            newIndex = 0;
+                        }
+                        showSlide(newIndex);
+                    }
+
+                    function prevSlide() {
+                        let newIndex = currentSlide - 1;
+                        if (newIndex < 0) {
+                            newIndex = totalSlides - 1;
+                        }
+                        showSlide(newIndex);
+                    }
+
+                    // Configurar listeners para botones de navegación
+                    if (nextBtn) {
+                        nextBtn.addEventListener('click', nextSlide);
+                    }
+
+                    if (prevBtn) {
+                        prevBtn.addEventListener('click', prevSlide);
+                    }
+
+                    // Permitir navegación con teclado
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'ArrowRight') {
+                            nextSlide();
+                        } else if (e.key === 'ArrowLeft') {
+                            prevSlide();
+                        }
+                    });
+
+                    // Habilitar deslizar para dispositivos táctiles
+                    let touchStartX = 0;
+                    let touchEndX = 0;
+
+                    const petCarousel = document.querySelector('.pet-carousel');
+
+                    if (petCarousel) {
+                        petCarousel.addEventListener('touchstart', function(e) {
+                            touchStartX = e.changedTouches[0].screenX;
+                        }, false);
+
+                        petCarousel.addEventListener('touchend', function(e) {
+                            touchEndX = e.changedTouches[0].screenX;
+                            handleSwipe();
+                        }, false);
+
+                        function handleSwipe() {
+                            if (touchEndX < touchStartX - 50) {
+                                nextSlide(); // Deslizar a la izquierda
+                            } else if (touchEndX > touchStartX + 50) {
+                                prevSlide(); // Deslizar a la derecha
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error en la inicialización global:", error);
+            }
+        });
+    </script>

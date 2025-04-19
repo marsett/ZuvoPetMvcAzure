@@ -1,0 +1,406 @@
+DROP TABLE IF EXISTS FAVORITOS;
+DROP TABLE IF EXISTS SOLICITUDESADOPCION;
+DROP TABLE IF EXISTS LIKESHISTORIAS;
+DROP TABLE IF EXISTS HISTORIASEXITO;
+DROP TABLE IF EXISTS NOTIFICACIONES;
+DROP TABLE IF EXISTS MENSAJES;
+DROP TABLE IF EXISTS MASCOTAS;
+DROP TABLE IF EXISTS REFUGIOS;
+DROP TABLE IF EXISTS ADOPTANTES;
+DROP TABLE IF EXISTS PERFIL_USUARIO;
+DROP TABLE IF EXISTS USUARIOS;
+
+-- 📌 TABLA Usuarios (Base de autenticación)
+CREATE TABLE USUARIOS (
+    Id INT PRIMARY KEY,  -- Identificador único del usuario
+    NombreUsuario NVARCHAR(50) UNIQUE NOT NULL,  -- Nombre de usuario (único)
+    Email NVARCHAR(255) UNIQUE NOT NULL,  -- Email (único)
+    ContrasenaLimpia NVARCHAR(255) NOT NULL,  -- Contraseña en texto claro (se utiliza temporalmente para encriptación)
+    ContrasenaEncriptada VARBINARY(MAX) NOT NULL,  -- Contraseña encriptada (almacenada como byte array)
+    Salt NVARCHAR(255) NOT NULL,  -- Salt para la contraseña
+    TipoUsuario NVARCHAR(20) NOT NULL CHECK (TipoUsuario IN ('Adoptante', 'Refugio')),  -- Tipo de usuario
+    FechaRegistro DATETIME DEFAULT GETDATE(),  -- Fecha de creación del usuario
+);
+GO
+
+-- 📌 TABLA Perfil_Usuario (Visible para el exterior)
+CREATE TABLE PERFIL_USUARIO (
+    Id INT PRIMARY KEY,  -- Identificador único del perfil de usuario
+    IdUsuario INT UNIQUE NOT NULL,  -- Relación con la tabla USUARIOS
+    FotoPerfil NVARCHAR(255) NULL,  -- Ruta de la imagen de perfil
+    Descripcion NVARCHAR(500) NULL,  -- Descripción del usuario (opcional)
+    FOREIGN KEY (IdUsuario) REFERENCES USUARIOS(Id)  -- Relación con la tabla USUARIOS
+);
+GO
+
+-- 📌 TABLA Adoptantes
+CREATE TABLE ADOPTANTES (
+    Id INT PRIMARY KEY,  -- Identificador único del adoptante
+    IdUsuario INT UNIQUE NOT NULL,  -- Relación con la tabla USUARIOS
+    Nombre NVARCHAR(255) NOT NULL,  -- Nombre real del adoptante
+    TipoVivienda NVARCHAR(100) NULL,  -- Tipo de vivienda
+    TieneJardin BIT NOT NULL DEFAULT 0,  -- Tiene jardín o no
+    OtrosAnimales BIT NOT NULL DEFAULT 0,  -- Tiene otras mascotas o no
+    RecursosDisponibles NVARCHAR(255) NULL,  -- Recursos disponibles para la mascota
+    TiempoEnCasa NVARCHAR(255) NULL,  -- Tiempo que pasa en casa
+    FOREIGN KEY (IdUsuario) REFERENCES USUARIOS(Id)  -- Relación con USUARIOS
+);
+GO
+
+-- 📌 TABLA Refugios
+CREATE TABLE REFUGIOS (
+    Id INT PRIMARY KEY,  -- Identificador único del refugio
+    IdUsuario INT UNIQUE NOT NULL,  -- Relación con la tabla USUARIOS
+    NombreRefugio NVARCHAR(255) NOT NULL,  -- Nombre del refugio
+    ContactoRefugio NVARCHAR(255) NOT NULL,  -- Contacto del refugio (Teléfono/Email)
+    CantidadAnimales INT NOT NULL,  -- Número de animales actualmente en el refugio
+    CapacidadMaxima INT NOT NULL,  -- Capacidad máxima de animales en el refugio
+    Latitud FLOAT NULL,  -- Latitud del refugio
+    Longitud FLOAT NULL,  -- Longitud del refugio
+    FOREIGN KEY (IdUsuario) REFERENCES USUARIOS(Id)  -- Relación con USUARIOS
+);
+GO
+
+-- 📌 TABLA Mascotas
+CREATE TABLE MASCOTAS (
+    Id INT PRIMARY KEY,  -- Identificador único de la mascota
+    Nombre NVARCHAR(100) NOT NULL,  -- Nombre de la mascota
+    Especie NVARCHAR(50) NOT NULL,  -- Especie de la mascota (Perro, Gato, etc.)
+    FechaNacimiento DATE NOT NULL,  -- Se usa para calcular edad de forma precisa
+    Tamano NVARCHAR(50) NOT NULL,  -- Tamano de la mascota (Pequeño, Mediano, Grande)
+    Sexo NVARCHAR(20) CHECK (Sexo IN ('Macho', 'Hembra')),  -- Sexo de la mascota
+    Castrado BIT DEFAULT 0 NOT NULL,  -- Indica si la mascota está esterilizada (1 = Sí, 0 = No)
+    Vacunado BIT DEFAULT 0 NOT NULL,  -- Indica si la mascota tiene vacunas al día
+    Desparasitado BIT DEFAULT 0 NOT NULL,  -- Indica si ha sido desparasitada
+    Sano BIT DEFAULT 1 NOT NULL,  -- Indica si la mascota está sana
+    Microchip BIT DEFAULT 0 NOT NULL,  -- Indica si la mascota tiene microchip
+    CompatibleConNinos BIT DEFAULT 0 NOT NULL,  -- Indica si la mascota es compatible con ninos
+    CompatibleConAdultos BIT DEFAULT 0 NOT NULL,  -- Indica si la mascota es compatible con adultos
+    CompatibleConOtrosAnimales BIT DEFAULT 0 NOT NULL,  -- Indica si la mascota es compatible con otros animales
+    Personalidad NVARCHAR(MAX) NULL, -- Lista de adjetivos separados por comas ("Cariñoso, Sociable")
+    Descripcion TEXT NULL,  -- Descripción general de la mascota
+    Estado NVARCHAR(50) DEFAULT 'Disponible' CHECK (Estado IN ('Disponible', 'Adoptado')),  -- Estado de la mascota (Disponible, Adoptado)
+    Latitud FLOAT NULL,  
+    Longitud FLOAT NULL, 
+    IdRefugio INT NULL,  -- ID del usuario (refugio o persona) que la registró
+    Foto NVARCHAR(255) NULL,  -- Ruta de la imagen de la mascota
+    Vistas INT DEFAULT 0 NOT NULL,  -- Contador de visualizaciones del perfil de la mascota
+    FechaRegistro DATETIME DEFAULT GETDATE(),  -- Fecha en la que la mascota fue registrada
+    FOREIGN KEY (IdRefugio) REFERENCES USUARIOS(Id)  -- Relación con el usuario (adoptante o refugio) que la registró
+);
+GO
+
+-- 📌 TABLA Favoritos
+CREATE TABLE FAVORITOS (
+    Id INT PRIMARY KEY,  -- Identificador único del favorito
+    IdAdoptante INT NOT NULL,  -- Usuario que marcó la mascota como favorita
+    IdMascota INT NOT NULL,  -- ID de la mascota que fue marcada como favorita
+    FechaAgregado DATETIME DEFAULT GETDATE(),  -- Fecha en que se agregó a favoritos
+    FOREIGN KEY (IdAdoptante) REFERENCES ADOPTANTES(Id),  -- Relación con la tabla de usuarios
+    FOREIGN KEY (IdMascota) REFERENCES MASCOTAS(Id),  -- Relación con la tabla de mascotas
+    UNIQUE (IdAdoptante, IdMascota)  -- Evita que un usuario marque la misma mascota más de una vez
+);
+GO
+
+-- 📌 TABLA Solicitudes de Adopción
+CREATE TABLE SOLICITUDESADOPCION (
+    Id INT PRIMARY KEY,  -- Identificador único de la solicitud de adopción
+    IdAdoptante INT NOT NULL,  -- ID del usuario que solicita la adopción
+    IdMascota INT NOT NULL,  -- ID de la mascota que se desea adoptar
+    Estado NVARCHAR(50) DEFAULT 'Pendiente' CHECK (Estado IN ('Pendiente', 'Aprobada', 'Rechazada')),  -- Estado de la solicitud ('Pendiente', 'Aprobada', 'Rechazada')
+    ExperienciaPrevia BIT,  -- Indica si el usuario ha tenido mascotas antes (1 = Sí, 0 = No)
+    TipoVivienda NVARCHAR(100),  -- Tipo de vivienda del adoptante (Casa, Departamento, etc.)
+    OtrosAnimales BIT,  -- Indica si el adoptante tiene otras mascotas (1 = Sí, 0 = No)
+    Recursos NVARCHAR(255),  -- Recursos disponibles para el cuidado de la mascota (Ej: "Jardín, Patio, Tiempo Completo")
+    TiempoEnCasa NVARCHAR(255),  -- Tiempo que el adoptante pasa en casa (Ej: "Todo el día, Solo noches")
+    FechaSolicitud DATETIME DEFAULT GETDATE(),  -- Fecha en que se realizó la solicitud
+    FechaRespuesta DATETIME,  -- Fecha en que se aprobó/rechazó la solicitud (NULL si aún está pendiente)
+    FOREIGN KEY (IdAdoptante) REFERENCES ADOPTANTES(Id),  -- Relación con el usuario adoptante
+    FOREIGN KEY (IdMascota) REFERENCES MASCOTAS(Id)  -- Relación con la mascota que se desea adoptar
+);
+GO 
+
+-- 📌 TABLA Historias de Éxito
+CREATE TABLE HISTORIASEXITO (
+    Id INT PRIMARY KEY,  -- Identificador único de la historia de éxito
+    IdAdoptante INT NOT NULL,  -- ID del usuario que publica la historia
+    IdMascota INT NOT NULL,  -- ID de la mascota protagonista de la historia
+    Titulo NVARCHAR(255) NOT NULL,  -- Título de la historia de éxito
+    Descripcion TEXT NOT NULL,  -- Relato completo de la historia de adopción
+    Foto NVARCHAR(255) NULL,  -- Ruta o URL de una imagen representativa
+    FechaPublicacion DATETIME DEFAULT GETDATE(),  -- Fecha en que se publicó la historia
+    Estado NVARCHAR(50) DEFAULT 'Pendiente' CHECK (Estado IN ('Pendiente', 'Aprobada', 'Rechazada')),  -- Estado de la historia ('Pendiente', 'Aprobada', 'Rechazada')
+    FOREIGN KEY (IdAdoptante) REFERENCES ADOPTANTES(Id),  -- Relación con el usuario que adopta
+    FOREIGN KEY (IdMascota) REFERENCES MASCOTAS(Id)  -- Relación con la mascota adoptada
+);
+GO
+
+-- 📌 TABLA Likes en Historias
+CREATE TABLE LIKESHISTORIAS (
+    Id INT PRIMARY KEY,  -- Identificador único del "like"
+    IdHistoria INT NOT NULL,  -- ID de la historia que recibe la reacción
+    IdUsuario INT NOT NULL,  -- ID del usuario que da la reacción
+    TipoReaccion NVARCHAR(20) NOT NULL CHECK (TipoReaccion IN ('MeGusta', 'MeEncanta', 'Inspirador', 'Solidario', 'Asombroso')),  -- Tipo de reacción (MeGusta, MeEncanta, etc.)
+    Fecha DATETIME DEFAULT GETDATE(),  -- Fecha y hora en que se realizó la reacción
+    FOREIGN KEY (IdHistoria) REFERENCES HISTORIASEXITO(Id),  -- Relación con la historia
+    FOREIGN KEY (IdUsuario) REFERENCES USUARIOS(Id),  -- Relación con el usuario
+    UNIQUE (IdHistoria, IdUsuario, TipoReaccion)  -- Evita que un usuario dé el mismo tipo de "like" más de una vez a una historia
+);
+GO
+
+-- 📌 TABLA Notificaciones (Para SignalR)
+CREATE TABLE NOTIFICACIONES (
+    Id INT PRIMARY KEY,  -- Identificador único de la notificación
+    IdUsuario INT NOT NULL,  -- ID del usuario que recibe la notificación
+    Mensaje NVARCHAR(255) NOT NULL,  -- Contenido del mensaje de la notificación
+	Tipo NVARCHAR(50) NOT NULL CHECK (Tipo IN ('Solicitud', 'Aprobación', 'Mensaje', 'Sistema')),  -- Tipo de notificación
+    Url NVARCHAR(255) NULL,  -- URL opcional para redirigir al usuario
+    Fecha DATETIME DEFAULT GETDATE(),  -- Fecha y hora en que se generó la notificación
+    Leido BIT DEFAULT 0,  -- Estado de la notificación (0 = No leída, 1 = Leída)
+    FOREIGN KEY (IdUsuario) REFERENCES USUARIOS(Id)  -- Relación con el usuario receptor de la notificación
+);
+GO
+
+-- 📌 TABLA Mensajes (Para SignalR)
+CREATE TABLE MENSAJES (
+    Id INT PRIMARY KEY,  -- Identificador único del mensaje
+    IdEmisor INT NOT NULL,  -- ID del usuario que envía el mensaje
+    IdReceptor INT NOT NULL,  -- ID del usuario que recibe el mensaje
+    Contenido TEXT NOT NULL,  -- Contenido del mensaje enviado
+    Fecha DATETIME DEFAULT GETDATE(),  -- Fecha y hora en que se envió el mensaje
+	Leido BIT DEFAULT 0, -- Estado del mensaje (0 = No leída, 1 = Leída)
+    FOREIGN KEY (IdEmisor) REFERENCES USUARIOS(Id),  -- Relación con el usuario que envió el mensaje
+    FOREIGN KEY (IdReceptor) REFERENCES USUARIOS(Id)  -- Relación con el usuario que recibió el mensaje
+);
+GO
+
+CREATE OR ALTER VIEW V_AdoptantePerfil AS
+SELECT 
+    U.Id AS IdUsuario,
+    U.NombreUsuario,
+    U.Email,
+    P.FotoPerfil,
+    P.Descripcion,
+    A.Nombre,
+    A.TipoVivienda,
+    A.TieneJardin,
+    A.OtrosAnimales,
+    A.RecursosDisponibles,
+    A.TiempoEnCasa
+FROM USUARIOS U
+JOIN PERFIL_USUARIO P ON U.Id = P.IdUsuario
+JOIN ADOPTANTES A ON U.Id = A.IdUsuario
+WHERE U.TipoUsuario = 'Adoptante';
+GO
+
+CREATE OR ALTER PROCEDURE SP_PERFILADOPTANTE
+(@idusuario int)
+as
+	select * from V_AdoptantePerfil
+	where IdUsuario = @idusuario;
+go
+
+CREATE OR ALTER VIEW V_RefugioPerfil AS
+SELECT 
+    U.Id AS IdUsuario,
+    U.NombreUsuario,
+    U.Email,
+    P.FotoPerfil,
+    P.Descripcion,
+    R.NombreRefugio,
+    R.ContactoRefugio,
+    R.CantidadAnimales,
+    R.CapacidadMaxima,
+    R.Latitud,
+	R.Longitud
+FROM USUARIOS U
+JOIN PERFIL_USUARIO P ON U.Id = P.IdUsuario
+JOIN REFUGIOS R ON U.Id = R.IdUsuario
+WHERE U.TipoUsuario = 'Refugio';
+GO
+CREATE OR ALTER PROCEDURE SP_PERFILREFUGIO
+(@idusuario int)
+as
+	select * from V_RefugioPerfil
+	where IdUsuario = @idusuario;
+go
+
+CREATE OR ALTER VIEW V_MascotasFavoritas
+AS
+SELECT 
+	m.Id,
+	m.Nombre,
+	m.Especie,
+	DATEDIFF(MONTH, m.FechaNacimiento, GETDATE()) AS Edad,
+	m.Tamano,
+	m.Sexo,
+	m.Foto,
+	f.IdAdoptante,
+	f.FechaAgregado
+FROM
+ MASCOTAS m
+ INNER JOIN
+ FAVORITOS f on m.Id = f.IdMascota
+ GO
+
+create or alter procedure SP_OBTENERMASCOTASFAVORITAS
+ (@idadoptante int)
+ as
+	select * from V_MascotasFavoritas
+	where IdAdoptante = @idadoptante
+	order by FechaAgregado desc
+ go
+
+CREATE OR ALTER VIEW V_MascotasAdoptadas
+AS
+SELECT 
+    m.Id,
+    m.Nombre,
+    m.Especie,
+    DATEDIFF(MONTH, m.FechaNacimiento, GETDATE()) AS Edad,
+    m.Tamano,
+    m.Sexo,
+    m.Foto,
+    s.IdAdoptante,
+    s.FechaRespuesta AS FechaAdopcion
+FROM
+    MASCOTAS m
+    INNER JOIN SOLICITUDESADOPCION s ON m.Id = s.IdMascota
+WHERE
+    s.Estado = 'Aprobada'
+GO
+
+CREATE OR ALTER PROCEDURE SP_OBTENERMASCOTASADOPTADAS
+    (@idadoptante int)
+AS
+    SELECT * FROM V_MascotasAdoptadas
+    WHERE IdAdoptante = @idadoptante
+    ORDER BY FechaAdopcion DESC
+GO
+
+-- 📌 Insertar en USUARIOS con CONVERT a VARBINARY
+INSERT INTO USUARIOS (Id, NombreUsuario, Email, ContrasenaLimpia, ContrasenaEncriptada, Salt, TipoUsuario)
+VALUES 
+(1, 'juanperez', 'juan@example.com', '123', CONVERT(VARBINARY(MAX), '5688636BA1D36F898A327189B6AF0731AF8F9C46C52B627001A7CF8226808F8D26026B5387C73EAA87A5E7213168C78A287728E0AA3B76E11EA19595038EA8A9', 2), 'S5C6mZA1vdO+c/3tarND6Rl0bBYIvwRA3tJZFzSayLs=', 'Adoptante'),
+(2, 'maria123', 'maria@example.com', '321', CONVERT(VARBINARY(MAX), '536659CF5AB46E9CE4E7AD57A4F60096BEB8B7889088C3441552F4EEEA0B2C844670AA3AC64487096D5A95E7D69939F8D32C6527DD7963FC6F5FDB443FA5660B', 2), 'n0qcuDcOqDxBI/25hnHWk3nmWHkEp0RnBispdRkQHqw=', 'Adoptante'),
+(3, 'carlos789', 'carlos@example.com', '098', CONVERT(VARBINARY(MAX), '2CFB89CF614BD21996FC781A764BBA0E6537E43DB47F5CC706158302BB5B7DBE18F5DB1A40BD8C84D811880E7CBC4789CE3F5778E676973B687ECDEAA0162167', 2), '0fpKvyG4kAhAJKw2y6yaCHhdZrLgzYqyLBJ0ZrDQq3A=', 'Adoptante'),
+(4, 'refugio_vida', 'contacto@refugiovida.com', '890', CONVERT(VARBINARY(MAX), '5AE819DAB5B9A0D257CD4B862AF4D13B4E5FEA0095A13D8DD493D943396565F47605B0826B32F125BAA55E876D0ECC826E55F5F532A56270C33E9F1663723D09', 2), 'oTneW+0XKLwI0JIrNN7Pzxxer6mzAA5XCn819pDAg/o=', 'Refugio'),
+(5, 'hogar_animal', 'info@hogaranimal.com', '345', CONVERT(VARBINARY(MAX), 'CD848AF824CD985B0386DC87D808ED5920ED29EBD90FF27498E5E3CD348EE2E8DA4AE60D24F07AB613294BBE723D50E364FA039625C5930244F8180035FBFDBD', 2), 'fb9JMUlulKbFeZBJ3BdUHDcze17YSB9YCBuGq3Kki48=', 'Refugio'),
+(6, 'mario', 'mariojimenez@gmail.com', 'contrasenamario', CONVERT(VARBINARY(MAX), '7638DE15FB9FF71E2B986F58EC9886EEF15E602396866A282E4B3EF4828EB19EEAAD731455AB2E713AADA2D349878242F453D89F420F9D7E90845ED0BD353509', 2), 'SGA4TxFmqSbsPcjPB1u3H5bLmhQRlIn3EPyIaLQYlGw=', 'Adoptante');
+
+-- 📌 Insertar en PERFIL_USUARIO con formato ISO 8601
+INSERT INTO PERFIL_USUARIO (Id, IdUsuario, FotoPerfil, Descripcion)
+VALUES 
+(1, 1, 'foto_juan.jpg', 'Soy un amante de los animales, busco adoptar un perro o gato.'),
+(2, 2, 'foto_maria.jpg', 'Me encanta cuidar a los animales y busco un compañero peludo.'),
+(3, 3, 'foto_carlos.jpg', 'Tengo experiencia con animales, quiero adoptar un gato.'),
+(4, 4, 'foto_refugio1.jpg', 'Refugio con años de experiencia en el rescate de animales.'),
+(5, 5, 'foto_refugio2.jpg', 'Hogar para animales abandonados, buscamos un buen hogar para ellos.'),
+(6, 6, 'foto_mario.jpg', '¡Bienvenido a tu perfil! Edita la descripción a tu gusto.');
+
+-- 📌 Insertar en ADOPTANTES
+INSERT INTO ADOPTANTES (Id, IdUsuario, Nombre, TipoVivienda, TieneJardin, OtrosAnimales, RecursosDisponibles, TiempoEnCasa)
+VALUES 
+(1, 1, 'Juan Pérez', 'Casa', 1, 1, '["Jardín"]', '4-8 horas'),
+(2, 2, 'María López', 'Departamento', 0, 0, '["Tiempo parcial"]', '4-8 horas'),
+(3, 3, 'Carlos Gómez', 'Casa', 1, 1, '["Espacio amplio"]', '4-8 horas'),
+(4, 6, 'Mario Jiménez Marset', 'Piso', 0, 1, '["Estilo de vida adecuado","Compromiso emocional"]', '4-8 horas');
+
+-- 📌 Insertar en REFUGIOS
+INSERT INTO REFUGIOS (Id, IdUsuario, NombreRefugio, ContactoRefugio, CantidadAnimales, CapacidadMaxima, Latitud, Longitud)
+VALUES 
+(1, 4, 'Refugio Vida', '642630675', 19, 50, 40.416775, -3.703790),
+(2, 5, 'Hogar Animal', '640241325', 11, 60, 41.385064, 2.173404);
+
+-- 📌 Insertar en MASCOTAS (Corrección de `IdRefugio`)
+INSERT INTO MASCOTAS (Id, Nombre, Especie, FechaNacimiento, Tamano, Sexo, Castrado, Vacunado, Desparasitado, Sano, Microchip, CompatibleConNinos, CompatibleConAdultos, CompatibleConOtrosAnimales, Personalidad, Descripcion, Estado, Latitud, Longitud, IdRefugio, Foto, Vistas)
+VALUES
+(1, 'Max', 'Perro', '2020-06-15', 'Mediano', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Juguetón, Amigable', 'Perro rescatado en busca de un hogar', 'Disponible', 40.4168, -3.7038, 1, 'perro1.jpg', 7),
+(2, 'Luna', 'Perro', '2019-08-20', 'Pequeño', 'Hembra', 1, 1, 1, 1, 1, 1, 1, 1, 'Tranquila, Cariñosa', 'Perra rescatada de la calle', 'Adoptado', 41.3851, 2.1734, 1, 'perro2.jpg', 8),
+(3, 'Rocky', 'Perro', '2021-01-10', 'Grande', 'Macho', 1, 1, 1, 1, 1, 0, 1, 1, 'Enérgico, Protector', 'Necesita espacio amplio', 'Disponible', 39.4699, -0.3763, 2, 'perro3.jpg', 5),
+(4, 'Nina', 'Perro', '2022-05-25', 'Pequeño', 'Hembra', 1, 1, 1, 1, 0, 1, 1, 1, 'Curiosa, Activa', 'Busca un hogar amoroso', 'Disponible', 42.3601, -8.4115, 2, 'perro4.jpg', 2),
+(5, 'Bruno', 'Perro', '2017-03-12', 'Grande', 'Macho', 1, 1, 1, 1, 1, 1, 1, 1, 'Tranquilo, Fiel', 'Rescatado de una carretera', 'Disponible', 43.2645, -8.6169, 1, 'perro5.jpg', 5),
+(6, 'Mila', 'Perro', '2019-09-30', 'Mediano', 'Hembra', 1, 1, 1, 1, 1, 1, 1, 1, 'Juguetona, Energética', 'Le encanta correr y jugar', 'Adoptado', 40.4637, -3.7492, 2, 'perro6.jpg', 5),
+(7, 'Simba', 'Perro', '2016-07-18', 'Grande', 'Macho', 1, 1, 1, 1, 1, 1, 1, 1, 'Inteligente, Protector', 'Muy sociable con otros perros', 'Disponible', 41.3784, 2.1914, 1, 'perro7.jpg', 12),
+(8, 'Mimi', 'Gato', '2021-02-15', 'Mediano', 'Hembra', 1, 1, 1, 1, 1, 1, 1, 1, 'Cariñosa, Independiente', 'Gata que busca un hogar acogedor', 'Disponible', 40.7315, -3.8985, 1, 'gato1.jpg', 6),
+(9, 'Felix', 'Gato', '2019-10-30', 'Pequeño', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Sociable, Activo', 'Gato juguetón y cariñoso', 'Disponible', 41.9232, 2.1120, 2, 'gato2.jpg', 4),
+(10, 'Whiskers', 'Gato', '2020-03-05', 'Mediano', 'Macho', 1, 1, 1, 1, 1, 1, 1, 1, 'Tranquilo, Cariñoso', 'Gato que disfruta de la compañía humana', 'Disponible', 40.4380, -3.7097, 1, 'gato3.jpg', 7),
+(11, 'Rocco', 'Conejo', '2020-04-22', 'Pequeño', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Tímido, Dulce', 'Conejo rescatado de un jardín', 'Disponible', 40.4620, -3.7000, 1, 'conejo1.jpg', 3),
+(12, 'Nina', 'Conejo', '2021-05-18', 'Mediano', 'Hembra', 1, 1, 1, 1, 1, 0, 1, 1, 'Curiosa, Alegre', 'Disfruta saltando por el jardín', 'Disponible', 41.8997, 1.0193, 2, 'conejo2.jpg', 4),
+(13, 'Daisy', 'Conejo', '2020-07-30', 'Mediano', 'Hembra', 1, 1, 1, 1, 0, 1, 1, 1, 'Amistosa, Cariñosa', 'Le gusta estar acompañada', 'Disponible', 39.7747, -0.2465, 1, 'conejo3.jpg', 6),
+(14, 'Toby', 'Hámster', '2022-03-11', 'Pequeño', 'Macho', 1, 1, 1, 1, 1, 0, 1, 1, 'Activo, Curioso', 'Disfruta de sus ruedas de ejercicio', 'Disponible', 40.9650, -5.6550, 1, 'hamster1.jpg', 6),
+(15, 'Lola', 'Hámster', '2022-08-05', 'Pequeño', 'Hembra', 1, 1, 1, 1, 0, 1, 1, 1, 'Amistosa, Juguetona', 'Siempre está corriendo y explorando', 'Disponible', 41.4036, 2.1744, 2, 'hamster2.jpg', 5),
+(16, 'Milo', 'Hámster', '2021-11-03', 'Pequeño', 'Macho', 1, 1, 1, 1, 0, 0, 1, 1, 'Tímido, Sociable', 'Le gusta correr en su rueda', 'Disponible', 41.8774, -0.4211, 1, 'hamster3.jpg', 4),
+(17, 'Kiko', 'Hurón', '2019-11-20', 'Mediano', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Divertido, Inquieto', 'Disfruta de los espacios pequeños para explorar', 'Disponible', 40.4105, -3.7248, 1, 'huron1.jpg', 4),
+(18, 'Maya', 'Hurón', '2020-02-03', 'Pequeño', 'Hembra', 1, 1, 1, 1, 1, 1, 1, 1, 'Cariñosa, Inteligente', 'Le encanta jugar con otros animales', 'Disponible', 42.8762, -8.5448, 2, 'huron2.jpg', 3),
+(19, 'Juno', 'Hurón', '2021-09-07', 'Mediano', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Curioso, Energético', 'Le encanta explorar su entorno', 'Disponible', 41.6790, -0.9070, 1, 'huron3.jpg', 5),
+(20, 'Rocky', 'Rata', '2021-12-15', 'Pequeño', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Sociable, Activo', 'Rata que busca un hogar cálido', 'Disponible', 40.4555, -3.5761, 1, 'rata1.jpg', 5),
+(21, 'Sasha', 'Rata', '2021-11-10', 'Pequeño', 'Hembra', 1, 1, 1, 1, 1, 1, 1, 1, 'Tranquila, Cariñosa', 'Le gusta estar en su jaula', 'Disponible', 42.2641, -8.7220, 2, 'rata2.jpg', 7),
+(22, 'Gizmo', 'Rata', '2022-06-22', 'Pequeño', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Activo, Juguetón', 'Rata sociable que disfruta de los mimos', 'Disponible', 41.4205, 2.1819, 1, 'rata3.jpg', 6),
+(23, 'Duna', 'Erizo', '2020-10-12', 'Pequeño', 'Hembra', 1, 1, 1, 1, 0, 1, 1, 1, 'Curiosa, Tímida', 'Eriza en busca de un hogar tranquilo', 'Disponible', 40.4168, -3.7038, 1, 'erizo1.jpg', 4),
+(24, 'Pip', 'Erizo', '2021-04-05', 'Pequeño', 'Macho', 1, 1, 1, 1, 0, 0, 1, 1, 'Inquieto, Alegre', 'Disfruta de explorar su entorno', 'Disponible', 40.7306, -3.9352, 2, 'erizo2.jpg', 3),
+(25, 'Pico', 'Erizo', '2021-02-15', 'Pequeño', 'Macho', 1, 1, 1, 1, 1, 1, 1, 1, 'Alegre, Activo', 'Busca una casa con jardín', 'Disponible', 39.9042, -0.4074, 1, 'erizo3.jpg', 5),
+(26, 'Chester', 'Ardilla', '2021-03-25', 'Pequeño', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Curioso, Rápido', 'Ardilla muy activa, le encanta trepar árboles', 'Disponible', 40.7128, -3.7038, 1, 'ardilla1.jpg', 4),
+(27, 'Bella', 'Ardilla', '2020-06-17', 'Pequeña', 'Hembra', 1, 1, 1, 1, 0, 1, 1, 1, 'Juguetona, Sociable', 'Le encanta saltar y jugar con otros animales', 'Disponible', 41.9028, -3.7038, 2, 'ardilla2.jpg', 5),
+(28, 'Rocky', 'Ardilla', '2020-09-05', 'Mediana', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Inquieto, Explorador', 'Busca un hogar con árboles y espacio', 'Disponible', 40.4168, -3.7038, 1, 'ardilla3.jpg', 3),
+(29, 'Nutty', 'Ardilla', '2022-02-10', 'Pequeña', 'Hembra', 1, 1, 1, 1, 0, 1, 1, 1, 'Tímida, Activa', 'Le encanta esconder nueces en su guarida', 'Disponible', 40.7306, -3.7038, 1, 'ardilla4.jpg', 4),
+(30, 'Zippy', 'Ardilla', '2021-08-18', 'Mediana', 'Macho', 1, 1, 1, 1, 0, 1, 1, 1, 'Ágil, Rápido', 'Le gusta saltar de árbol en árbol', 'Disponible', 40.7831, -3.7038, 2, 'ardilla5.jpg', 6);
+
+-- 📌 Insertar en FAVORITOS
+INSERT INTO FAVORITOS (Id, IdAdoptante, IdMascota)
+VALUES 
+(1, 1, 1), (2, 2, 2), (3, 3, 3),
+(4, 4, 1), (5, 4, 4), (7, 4, 13);
+
+-- 📌 Insertar en SOLICITUDESADOPCION
+INSERT INTO SOLICITUDESADOPCION (Id, IdAdoptante, IdMascota, Estado, ExperienciaPrevia, TipoVivienda, OtrosAnimales, Recursos, TiempoEnCasa, FechaRespuesta)
+VALUES 
+(1, 1, 1, 'Pendiente', 1, 'Casa', 1, '["Jardín"]', '4-8 horas', NULL),
+(2, 2, 2, 'Aprobada', 1, 'Departamento', 0, '["Tiempo parcial"]', '4-8 horas', CAST(N'2024-03-25T17:30:00' AS DATETIME)),
+(3, 3, 3, 'Rechazada', 0, 'Casa', 1, '["Espacio amplio"]', '4-8 horas', NULL),
+(4, 4, 6, 'Aprobada', 1, 'Piso', 1, '["Estilo de vida adecuado","Compromiso emocional"]', '4-8 horas', CAST(N'2025-03-13T21:18:16' AS DATETIME));
+
+-- 📌 Insertar en HISTORIASEXITO
+INSERT INTO HISTORIASEXITO (Id, IdAdoptante, IdMascota, Titulo, Descripcion, Foto, Estado)
+VALUES 
+(1, 1, 1, 'Max encontró un hogar', 'Después de meses en el refugio, Max fue adoptado por Juan.', 'dueno1.jpg', 'Aprobada'),
+(2, 2, 2, 'Luna es feliz en su nueva casa', 'María adoptó a Luna y la cuida con mucho amor.', 'dueno2.jpg', 'Aprobada'),
+(3, 3, 3, 'Rocky disfruta de su nueva familia', 'Aunque inicialmente fue rechazado, Rocky encontró un hogar.', 'dueno3.jpg', 'Aprobada');
+
+-- 📌 Insertar en LIKESHISTORIAS
+INSERT INTO LIKESHISTORIAS (Id, IdHistoria, IdUsuario, TipoReaccion)
+VALUES 
+(1, 1, 1, 'MeGusta'),
+(2, 1, 2, 'MeEncanta'),
+(3, 2, 3, 'Inspirador'),
+(4, 3, 4, 'Solidario'),
+(5, 3, 5, 'Asombroso'),
+(6, 1, 6, 'MeEncanta'),
+(7, 2, 6, 'Asombroso'),
+(8, 3, 6, 'Inspirador'),
+(9, 2, 5, 'Inspirador');
+
+-- 📌 Insertar en NOTIFICACIONES
+INSERT INTO NOTIFICACIONES (Id, IdUsuario, Mensaje, Tipo, Url, Leido)
+VALUES 
+(1, 1, 'Tu solicitud de adopción está pendiente', 'Solicitud', NULL, 1),
+(2, 2, 'Tu inscripción al evento ha sido confirmada', 'Aprobación', NULL, 0),
+(3, 6, '¡Felicidades! Tu solicitud para adoptar a Mila ha sido aprobada.', 'Aprobación', '/Adoptante/MisAdopciones', 0);
+
+-- 📌 Insertar en MENSAJES
+INSERT INTO MENSAJES (Id, IdEmisor, IdReceptor, Contenido, Leido)
+VALUES 
+(1, 1, 4, 'Hola, estoy interesado en adoptar a Max.', 1),
+(2, 4, 1, '¡Claro! Podemos agendar una visita.', 0);
+
+select * from USUARIOS
+select * from ADOPTANTES
+select * from REFUGIOS
+select * from PERFIL_USUARIO
+select * from HISTORIASEXITO
+select * from SOLICITUDESADOPCION
+select * from MASCOTAS
+select * from FAVORITOS
+select * from LIKESHISTORIAS
+select * from NOTIFICACIONES
+select * from MENSAJES

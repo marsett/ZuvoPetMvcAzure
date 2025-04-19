@@ -1,0 +1,294 @@
+﻿@{
+    ViewData["Title"] = "Acceso Denegado";
+}
+
+<div class="container-fluid px-4 py-5 login-container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="pet-page-title text-center mb-4">
+                <span class="title-highlight">Acceso</span>
+                <span class="title-highlight">Denegado</span>
+                <span class="title-emoji">🔒</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg overflow-hidden denied-card">
+                <div class="card-header bg-danger text-white p-3 text-center">
+                    <i class="fas fa-shield-alt fa-2x me-2"></i>
+                    <span class="fw-bold fs-4">Zona Restringida</span>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="denied-animation">
+                        <div class="denied-icon">
+                            <i class="fas fa-paw paw-1"></i>
+                            <i class="fas fa-paw paw-2"></i>
+                            <i class="fas fa-paw paw-3"></i>
+                            <i class="fas fa-ban ban-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger my-4 py-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No tienes permisos para acceder a esta página.
+                    </div>
+
+                    <p class="text-muted mb-4">Esta área está reservada para personal autorizado.</p>
+
+
+                    <div class="d-grid gap-2">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            @if (User.IsInRole("Adoptante"))
+                            {
+                                <a asp-controller="Adoptante" asp-action="Index" class="btn botoninicio btn-lg shadow-sm">
+                                    <i class="fas fa-home me-2"></i>Volver a Inicio
+                                </a>
+                            }
+                            else if (User.IsInRole("Refugio"))
+                            {
+                                <a asp-controller="Refugio" asp-action="Index" class="btn botoninicio btn-lg shadow-sm">
+                                    <i class="fas fa-home me-2"></i>Volver a Inicio
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .botoninicio {
+        background-color: #000039;
+        color: #ffffff;
+        border: none;
+    }
+
+        .botoninicio:hover {
+            background-color: transparent;
+            color: #bab986;
+            border: 2px solid #bab986;
+        }
+    /* Page Title Styling */
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #dc3545, #ff6b6b);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+        animation: bounce 2s infinite;
+    }
+
+    /* Card styling */
+    .card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 15px !important;
+    }
+
+    .denied-card {
+        background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(248,249,250,1) 100%);
+        border-left: 5px solid #dc3545 !important;
+    }
+
+        .denied-card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(220, 53, 69, 0.2);
+        }
+
+    /* Denied animation */
+    .denied-animation {
+        position: relative;
+        height: 120px;
+        margin: 10px 0 30px;
+    }
+
+    .denied-icon {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+    }
+
+    .paw-1, .paw-2, .paw-3 {
+        position: absolute;
+        color: #333;
+        opacity: 0.3;
+        font-size: 2rem;
+    }
+
+    .paw-1 {
+        top: 10px;
+        left: 10px;
+        transform: rotate(-30deg);
+        animation: pawAnimation 3s infinite;
+        animation-delay: 0s;
+    }
+
+    .paw-2 {
+        top: 40px;
+        left: 40px;
+        transform: rotate(10deg);
+        animation: pawAnimation 3s infinite;
+        animation-delay: 0.5s;
+    }
+
+    .paw-3 {
+        top: 20px;
+        right: 10px;
+        transform: rotate(45deg);
+        animation: pawAnimation 3s infinite;
+        animation-delay: 1s;
+    }
+
+    .ban-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 5rem;
+        color: #dc3545;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pawAnimation {
+        0%
+
+    {
+        transform: translateY(0) rotate(-30deg);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(-30deg);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translateY(0) rotate(-30deg);
+        opacity: 0.3;
+    }
+
+    }
+
+    @@keyframes pulse {
+        0%
+
+    {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100%
+
+    {
+        transform: translateY(-3px);
+    }
+
+    40% {
+        transform: translateY(-10px);
+    }
+
+    60% {
+        transform: translateY(-5px);
+    }
+
+    }
+
+    /* Button styling */
+    .adopt-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(to right, #007bff, #0069d9);
+    }
+
+        .adopt-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            background: linear-gradient(to right, #0069d9, #004ca3);
+        }
+
+        .adopt-btn:active {
+            transform: translateY(0);
+        }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .pet-page-title
+
+    {
+        font-size: 2rem;
+    }
+
+    }
+
+    .login-container {
+        background-color: #f8f9fa;
+        padding: 3rem 0;
+        border-radius: 15px;
+        margin: 2rem auto;
+    }
+
+    /* Alert custom styling */
+    .alert-danger {
+        border-radius: 10px;
+        border-left: 5px solid #842029;
+    }
+
+    /* Card header rounded corners */
+    .card-header {
+        border-top-left-radius: 14px !important;
+        border-top-right-radius: 14px !important;
+    }
+</style>
+
+<!-- Añadir Font Awesome si no está ya incluido en tu _Layout.cshtml -->
+@section Scripts {
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+}

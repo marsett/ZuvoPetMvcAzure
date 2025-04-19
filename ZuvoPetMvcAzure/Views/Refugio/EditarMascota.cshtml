@@ -1,0 +1,604 @@
+﻿@model Mascota
+
+<div class="container-fluid px-4 py-5 edit-pet-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="pet-page-title text-center mb-4">
+                <span class="title-highlight">Editar</span> información de
+                <span class="title-highlight">mascota</span> en adopción
+                <span class="title-emoji">🐾</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-body p-4">
+                    <form asp-action="EditarMascota" method="post" enctype="multipart/form-data" class="pet-form">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="FechaRegistro" />
+                        <input type="hidden" asp-for="Vistas" />
+                        <input type="hidden" asp-for="IdRefugio" />
+                        <input type="hidden" asp-for="Foto" />
+
+                        <!-- Sección de Información básica -->
+                        <div class="section-container mb-4 p-3 rounded-lg animate-section">
+                            <h3 class="section-title mb-4">
+                                <i class="fas fa-info-circle me-2"></i>Información básica
+                            </h3>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input asp-for="Nombre" class="form-control" id="Nombre" placeholder="Nombre" required />
+                                        <label asp-for="Nombre">Nombre</label>
+                                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <select asp-for="Especie" class="form-select" id="Especie" required>
+                                            <option value="">Seleccionar</option>
+                                            <option value="Perro">Perro</option>
+                                            <option value="Gato">Gato</option>
+                                            <option value="Conejo">Conejo</option>
+                                            <option value="Hámster">Hámster</option>
+                                            <option value="Hurón">Hurón</option>
+                                            <option value="Rata">Rata</option>
+                                            <option value="Erizo">Erizo</option>
+                                            <option value="Ardilla">Ardilla</option>
+                                        </select>
+                                        <label asp-for="Especie">Especie</label>
+                                        <span asp-validation-for="Especie" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <input asp-for="FechaNacimiento" type="date" class="form-control" id="FechaNacimiento" />
+                                        <label asp-for="FechaNacimiento">Fecha de Nacimiento</label>
+                                        <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <select asp-for="Tamano" class="form-select" id="Tamano" required>
+                                            <option value="">Seleccionar</option>
+                                            <option value="Pequeño">Pequeño</option>
+                                            <option value="Mediano">Mediano</option>
+                                            <option value="Grande">Grande</option>
+                                        </select>
+                                        <label asp-for="Tamano">Tamaño</label>
+                                        <span asp-validation-for="Tamano" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <select asp-for="Sexo" class="form-select" id="Sexo" required>
+                                            <option value="">Seleccionar</option>
+                                            <option value="Macho">Macho</option>
+                                            <option value="Hembra">Hembra</option>
+                                        </select>
+                                        <label asp-for="Sexo">Sexo</label>
+                                        <span asp-validation-for="Sexo" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <select asp-for="Estado" class="form-select" id="Estado">
+                                            <option value="Disponible">Disponible</option>
+                                            <option value="En proceso">En proceso</option>
+                                            <option value="Adoptado">Adoptado</option>
+                                        </select>
+                                        <label asp-for="Estado">Estado de Adopción</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Características y salud -->
+                        <div class="section-container mb-4 p-3 rounded-lg animate-section">
+                            <h3 class="section-title mb-4">
+                                <i class="fas fa-heartbeat me-2"></i>Características y Salud
+                            </h3>
+                            <!-- Estado de Salud -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="health-status-container p-3 mb-3 rounded">
+                                        <h4 class="fw-bold mb-3">Estado de Salud</h4>
+                                        <div class="d-flex flex-wrap">
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="Castrado" class="form-check-input" type="checkbox" id="Castrado" />
+                                                <label class="form-check-label" for="Castrado">Castrado/a</label>
+                                            </div>
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="Vacunado" class="form-check-input" type="checkbox" id="Vacunado" />
+                                                <label class="form-check-label" for="Vacunado">Vacunado/a</label>
+                                            </div>
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="Desparasitado" class="form-check-input" type="checkbox" id="Desparasitado" />
+                                                <label class="form-check-label" for="Desparasitado">Desparasitado/a</label>
+                                            </div>
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="Sano" class="form-check-input" type="checkbox" id="Sano" />
+                                                <label class="form-check-label" for="Sano">Sano/a</label>
+                                            </div>
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="Microchip" class="form-check-input" type="checkbox" id="Microchip" />
+                                                <label class="form-check-label" for="Microchip">Microchip</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Compatibilidad (ahora debajo de Estado de Salud) -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="compatibility-container p-3 mb-3 rounded">
+                                        <h4 class="fw-bold mb-3">Compatibilidad</h4>
+                                        <div class="d-flex flex-wrap">
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="CompatibleConNinos" class="form-check-input" type="checkbox" id="CompatibleConNinos" />
+                                                <label class="form-check-label" for="CompatibleConNinos">Compatible con niños</label>
+                                            </div>
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="CompatibleConAdultos" class="form-check-input" type="checkbox" id="CompatibleConAdultos" />
+                                                <label class="form-check-label" for="CompatibleConAdultos">Compatible con adultos</label>
+                                            </div>
+                                            <div class="form-check form-switch me-3 mb-3">
+                                                <input asp-for="CompatibleConOtrosAnimales" class="form-check-input" type="checkbox" id="CompatibleConOtrosAnimales" />
+                                                <label class="form-check-label" for="CompatibleConOtrosAnimales">Compatible con otros animales</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Personalidad (ahora debajo de Compatibilidad) -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" asp-for="Personalidad" class="form-control" id="Personalidad" placeholder="Personalidad" />
+                                        <label asp-for="Personalidad">Personalidad</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Descripción (ahora debajo de Personalidad) -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-floating mb-3">
+                                        <textarea asp-for="Descripcion" class="form-control" id="Descripcion" placeholder="Descripción" style="height: 100px;"></textarea>
+                                        <label asp-for="Descripcion">Descripción</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Foto -->
+                        <div class="section-container mb-4 p-3 rounded-lg animate-section">
+                            <h3 class="section-title mb-4">
+                                <i class="fas fa-camera me-2"></i>Foto de la Mascota
+                            </h3>
+                            <div class="row justify-content-center">
+                                <div class="col-md-8">
+                                    <div class="image-upload-container position-relative" style="height: 350px; width: 100%; background-color: #f8f9fa; border: 2px dashed #ccc; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                                        <div id="preview" class="text-center">
+                                            @if (!string.IsNullOrEmpty(Model.Foto))
+                                            {
+                                                <img src="@Url.Content("~/images/" + Model.Foto)" class="image-preview" />
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-paw fa-4x text-primary opacity-50"></i>
+                                                <p class="mt-3 mb-0 text-muted">Selecciona una foto de la mascota</p>
+                                            }
+                                        </div>
+                                        <label for="fichero" class="position-absolute btn btn-primary rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="top: 10px; right: 10px; width: 46px; height: 46px; cursor: pointer; z-index: 6;">
+                                            <i class="fas fa-camera"></i>
+                                        </label>
+                                        <input type="file" id="fichero" name="fichero" accept="image/*" style="display: none;" />
+                                    </div>
+                                    <p class="text-center text-muted mt-2"><small><i class="fas fa-info-circle me-1"></i>Haz clic en el botón de la cámara para cambiar la imagen</small></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Ubicación -->
+                        <div class="section-container mb-4 p-3 rounded-lg animate-section">
+                            <h3 class="section-title mb-4">
+                                <i class="fas fa-map-marker-alt me-2"></i>Ubicación
+                            </h3>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="mapa" style="height: 300px;" class="border rounded shadow-sm"></div>
+                                    <p class="text-center text-muted mt-2"><small><i class="fas fa-info-circle me-1"></i>Haz clic en el mapa para establecer la ubicación de la mascota</small></p>
+                                </div>
+                            </div>
+                            <div class="row mt-3" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input asp-for="Latitud" type="number" step="any" class="form-control" id="Latitud" placeholder="Latitud" />
+                                        <label asp-for="Latitud">Latitud</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input asp-for="Longitud" type="number" step="any" class="form-control" id="Longitud" placeholder="Longitud" />
+                                        <label asp-for="Longitud">Longitud</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Campos de visualización para el usuario -->
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" id="LatitudDisplay" class="form-control" placeholder="Latitud" readonly />
+                                        <label for="LatitudDisplay">Latitud</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" id="LongitudDisplay" class="form-control" placeholder="Longitud" readonly />
+                                        <label for="LongitudDisplay">Longitud</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="ubicacion-status" class="text-muted mt-1 text-center fw-light">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                Haz clic en el mapa para seleccionar la ubicación de la mascota
+                            </p>
+                        </div>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm pet-btn w-100">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+<style>
+    /* Page Title Styling */
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #bab986, #bab986);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Section containers */
+    .section-container {
+        background-color: #ffffff;
+        border: 1px solid rgba(0, 123, 255, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+        .section-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 123, 255, 0.3);
+        }
+
+    /* Section titles */
+    .section-title {
+        font-size: 1.5rem;
+        color: #3e3e53;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 8px;
+        display: inline-block;
+    }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #bab986, #bab986);
+            border-radius: 3px;
+        }
+
+    /* Health and compatibility containers */
+    .health-status-container, .compatibility-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+        .health-status-container:hover, .compatibility-container:hover {
+            background-color: #e9f5ff;
+        }
+
+    /* Card styling */
+    .card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 15px;
+    }
+
+        .card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+    /* Form styling */
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e1e5ea;
+        padding: 1.5rem 1rem 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: none;
+            border-color: #bab986;
+            border-width: 2px;
+        }
+
+    .form-floating label {
+        padding: 1rem;
+    }
+
+    /* Switch styling */
+    .form-switch .form-check-input {
+        width: 2.5em;
+        height: 1.25em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        
+
+    .form-check-label {
+        cursor: pointer;
+        padding-top: 2px;
+    }
+
+    .form-check-input:checked {
+        background-color: #000039;
+        border-color: #000039;
+    }
+
+
+    /* Button styling */
+    .pet-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(to right, #007bff, #00c6ff);
+        border: none;
+    }
+
+        .pet-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .pet-btn:active {
+            transform: translateY(0);
+        }
+
+    /* Image preview */
+    .image-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    /* Map styling */
+    #mapa {
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 2px solid #e1e5ea;
+    }
+
+        #mapa:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+    /* Status indicator styling */
+    .text-success {
+        color: #28a745 !important;
+        font-weight: 500;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .pet-page-title
+
+    {
+        font-size: 2rem;
+    }
+
+    }
+
+    .edit-pet-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+    }
+
+    .pet-form {
+        padding: 1rem;
+    }
+
+    /* Animaciones para secciones */
+    .animate-section {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.8s ease-in-out, transform 0.8s ease-out;
+    }
+
+        .animate-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+</style>
+
+@section Scripts {
+    <!-- Incluir Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Manejar la vista previa de imágenes
+            const fotoInput = document.getElementById('fichero');
+            const previewContainer = document.getElementById('preview');
+
+            fotoInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    // Mostrar preview de la imagen
+                    const file = this.files[0];
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        previewContainer.innerHTML = `<img src="${e.target.result}" class="image-preview" />`;
+                    }
+
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Inicializar el mapa con OpenStreetMap
+            const mapaElement = document.getElementById('mapa');
+            const statusElement = document.getElementById('ubicacion-status');
+            const latitudInput = document.getElementById('Latitud');
+            const longitudInput = document.getElementById('Longitud');
+            const latitudDisplay = document.getElementById('LatitudDisplay');
+            const longitudDisplay = document.getElementById('LongitudDisplay');
+
+            if (mapaElement) {
+                try {
+                    // Obtener las coordenadas del modelo
+                    let lat = @Html.Raw(Json.Serialize(Model.Latitud));
+                    let lng = @Html.Raw(Json.Serialize(Model.Longitud));
+
+                    // Si no hay coordenadas guardadas, usar las del ViewData
+                    if (lat === 0 && lng === 0) {
+                        lat = @Html.Raw(Json.Serialize(ViewData["LATITUD"]));
+                        lng = @Html.Raw(Json.Serialize(ViewData["LONGITUD"]));
+                    }
+
+                    console.log("Coordenadas obtenidas:", lat, lng);
+
+                    // Mostrar las coordenadas en los campos de visualización
+                    latitudDisplay.value = lat.toFixed(6);
+                    longitudDisplay.value = lng.toFixed(6);
+
+                    // Inicializar el mapa
+                    const map = L.map('mapa').setView([lat, lng], 13);
+
+                    // Añadir capa de OpenStreetMap
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+
+                    // Añadir marcador inicial
+                    let marker = L.marker([lat, lng], {
+                        draggable: true
+                    }).addTo(map);
+
+                    // Establecer los valores iniciales en los campos
+                    latitudInput.value = lat;
+                    longitudInput.value = lng;
+
+                    // Actualizar coordenadas cuando se arrastra el marcador
+                    marker.on('dragend', function(event) {
+                        const position = marker.getLatLng();
+                        latitudInput.value = position.lat;
+                        longitudInput.value = position.lng;
+                        latitudDisplay.value = position.lat.toFixed(6);
+                        longitudDisplay.value = position.lng.toFixed(6);
+
+                        // Mostrar mensaje de confirmación
+                        statusElement.innerHTML = '<i class="fas fa-check-circle me-1"></i> Ubicación seleccionada: ' + position.lat.toFixed(6) + ', ' + position.lng.toFixed(6);
+                        statusElement.className = 'text-success mt-1 text-center';
+                    });
+
+                    // Permitir hacer clic en el mapa para mover el marcador
+                    map.on('click', function(e) {
+                        const newLatLng = e.latlng;
+                        marker.setLatLng(newLatLng);
+                        latitudInput.value = newLatLng.lat;
+                        longitudInput.value = newLatLng.lng;
+                        latitudDisplay.value = newLatLng.lat.toFixed(6);
+                        longitudDisplay.value = newLatLng.lng.toFixed(6);
+
+                        // Mostrar mensaje de confirmación
+                        statusElement.innerHTML = '<i class="fas fa-check-circle me-1"></i> Ubicación seleccionada: ' + newLatLng.lat.toFixed(6) + ', ' + newLatLng.lng.toFixed(6);
+                        statusElement.className = 'text-success mt-1 text-center';
+                    });
+
+                } catch (error) {
+                    console.error("Error al inicializar el mapa:", error);
+                    mapaElement.innerHTML = '<div class="alert alert-danger">Error al cargar el mapa: ' + error.message + '</div>';
+                }
+            }
+
+            // Función para animar elementos cuando aparecen en el viewport
+            const animateSections = function() {
+                const sections = document.querySelectorAll('.animate-section');
+                sections.forEach(section => {
+                    const sectionTop = section.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    if (sectionTop < windowHeight * 0.85) {
+                        section.classList.add('show');
+                    }
+                });
+            };
+
+            // Ejecutar animación al cargar y al hacer scroll
+            animateSections();
+            window.addEventListener('scroll', animateSections);
+        });
+    </script>
+}

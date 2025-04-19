@@ -1,0 +1,694 @@
+﻿@model SolicitudAdopcion
+
+@{
+    @Html.AntiForgeryToken()
+}
+
+<div class="container-fluid px-4 py-5 adoption-request-details-container">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="page-title mb-0">
+                <span class="title-highlight">Detalles</span> de
+                <span class="title-highlight">Solicitud</span>
+                <span class="title-emoji">📋</span>
+            </h1>
+            <a asp-controller="Refugio" asp-action="Solicitudes" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al listado
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Columna de la mascota -->
+        <div class="col-12 col-lg-4">
+            <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                <div class="position-relative">
+                    <img src="~/images/@Model.Mascota.Foto"
+                         class="card-img-top pet-card-image"
+                         alt="@Model.Mascota.Nombre">
+                    <div class="pet-card-overlay">
+                        <div class="pet-card-badges">
+                            <div class="pet-status-badge bg-@GetStatusColor(Model.Mascota.Estado)">
+                                <i class="fas fa-paw me-1"></i>
+                                <span class="ms-1">@Model.Mascota.Estado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <h3 class="pet-name mb-3">
+                        <i class="fas fa-paw me-2" style="color: #7c7b6c;"></i>@Model.Mascota.Nombre
+                    </h3>
+
+                    <div class="pet-details mb-4">
+                        <div class="pet-detail-item">
+                            <span class="label"><i class="fas fa-birthday-cake me-2"></i>Edad:</span>
+                            <span class="value">@GetEdad(Model.Mascota.FechaNacimiento)</span>
+                        </div>
+                        <div class="pet-detail-item">
+                            <span class="label"><i class="fas fa-dog me-2"></i>Especie:</span>
+                            <span class="value">@Model.Mascota.Especie</span>
+                        </div>
+                        <div class="pet-detail-item">
+                            <span class="label"><i class="fas fa-ruler me-2"></i>Tamaño:</span>
+                            <span class="value">@Model.Mascota.Tamano</span>
+                        </div>
+                        <div class="pet-detail-item">
+                            <span class="label"><i class="fas fa-venus-mars me-2"></i>Sexo:</span>
+                            <span class="value">@Model.Mascota.Sexo</span>
+                        </div>
+                    </div>
+
+                    <div class="pet-health mb-4">
+                        <h5 class="section-title mb-3">Estado de salud</h5>
+                        <div class="health-tags">
+                            <span class="health-tag @(Model.Mascota.Castrado ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.Castrado ? "fa-check" : "fa-times")"></i> Castrado
+                            </span>
+                            <span class="health-tag @(Model.Mascota.Vacunado ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.Vacunado ? "fa-check" : "fa-times")"></i> Vacunado
+                            </span>
+                            <span class="health-tag @(Model.Mascota.Desparasitado ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.Desparasitado ? "fa-check" : "fa-times")"></i> Desparasitado
+                            </span>
+                            <span class="health-tag @(Model.Mascota.Microchip ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.Microchip ? "fa-check" : "fa-times")"></i> Microchip
+                            </span>
+                            <span class="health-tag @(Model.Mascota.Sano ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.Sano ? "fa-check" : "fa-times")"></i> Sano
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="pet-personality mb-4">
+                        <h5 class="section-title mb-3">Compatibilidad</h5>
+                        <div class="compatibility-tags">
+                            <span class="compatibility-tag @(Model.Mascota.CompatibleConNinos ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.CompatibleConNinos ? "fa-check" : "fa-times")"></i> Niños
+                            </span>
+                            <span class="compatibility-tag @(Model.Mascota.CompatibleConAdultos ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.CompatibleConAdultos ? "fa-check" : "fa-times")"></i> Adultos
+                            </span>
+                            <span class="compatibility-tag @(Model.Mascota.CompatibleConOtrosAnimales ? "active" : "inactive")">
+                                <i class="fas @(Model.Mascota.CompatibleConOtrosAnimales ? "fa-check" : "fa-times")"></i> Otros animales
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Mascota.Descripcion))
+                    {
+                            <div class="pet-description">
+                                <h5 class="section-title mb-3">Descripción</h5>
+                                <p class="description-text">@Model.Mascota.Descripcion</p>
+                            </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna del adoptante y la solicitud -->
+        <div class="col-12 col-lg-8">
+            <div class="row g-4">
+                <!-- Estado de la solicitud -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-lg status-card">
+                        <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                            <div class="status-info mb-3 mb-md-0">
+                                <h5 class="text-muted mb-1">Estado de la solicitud</h5>
+                                <div class="request-status-large bg-@GetStatusColor(Model.Estado)">
+                                    <i class="fas @GetStatusIcon(Model.Estado) me-2"></i>
+                                    @Model.Estado
+                                </div>
+                                <div class="date-info mt-2">
+                                    <span class="badge bg-light text-dark me-2">
+                                        <i class="far fa-calendar-alt me-1"></i>Solicitado: @Model.FechaSolicitud.ToString("dd/MM/yyyy")
+                                    </span>
+                                    @if (Model.FechaRespuesta.HasValue)
+                                    {
+                                            <span class="badge bg-light text-dark">
+                                                <i class="far fa-calendar-check me-1"></i>Respondido: @Model.FechaRespuesta.Value.ToString("dd/MM/yyyy")
+                                            </span>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (Model.Estado == "Pendiente")
+                            {
+                                    <div class="status-actions d-flex gap-2">
+                                        <button type="button"
+                                                class="btn btn-success"
+                                                onclick="confirmarSolicitud(@Model.Id, 'Aprobada')">
+                                            <i class="fas fa-check me-2"></i>Aprobar
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-danger"
+                                                onclick="confirmarSolicitud(@Model.Id, 'Rechazada')">
+                                            <i class="fas fa-times me-2"></i>Rechazar
+                                        </button>
+                                    </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del adoptante -->
+                <div class="col-12 col-md-6">
+                    <div class="card border-0 shadow-lg h-100">
+                        <div class="card-header d-flex align-items-center py-3" style="background-color: #f8f69f; color: #000039;">
+                            <i class="fas fa-user-circle fs-4 me-2"></i>
+                            <h5 class="mb-0">Información del Adoptante</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="adopter-info">
+                                <div class="adopter-detail-item">
+                                    <span class="label"><i class="fas fa-user me-2"></i>Nombre:</span>
+                                    <span class="value">@Model.Adoptante.Nombre</span>
+                                </div>
+                                <div class="adopter-detail-item">
+                                    <span class="label"><i class="fas fa-id-badge me-2"></i>Usuario:</span>
+                                    <span class="value">@Model.Adoptante.Usuario.NombreUsuario</span>
+                                </div>
+                                <div class="adopter-detail-item">
+                                    <span class="label"><i class="fas fa-home me-2"></i>Tipo de vivienda:</span>
+                                    <span class="value">@Model.Adoptante.TipoVivienda</span>
+                                </div>
+                                <div class="adopter-detail-item">
+                                    <span class="label"><i class="fas fa-tree me-2"></i>Jardín:</span>
+                                    <span class="value">@(Model.Adoptante.TieneJardin ? "Sí" : "No")</span>
+                                </div>
+                                <div class="adopter-detail-item">
+                                    <span class="label"><i class="fas fa-paw me-2"></i>Otros animales:</span>
+                                    <span class="value">@(Model.Adoptante.OtrosAnimales ? "Sí" : "No")</span>
+                                </div>
+                                <div class="adopter-detail-item">
+                                    <span class="label"><i class="fas fa-clock me-2"></i>Tiempo en casa:</span>
+                                    <span class="value">@Model.Adoptante.TiempoEnCasa</span>
+                                </div>
+                            </div>
+
+                            <div class="resources-section mt-4">
+                                <h6 class="section-subtitle mb-2"><i class="fas fa-wallet me-2"></i>Recursos disponibles:</h6>
+                                <div class="resources-tags">
+                                    @foreach (var recurso in Model.Adoptante.RecursosDisponibles)
+                                    {
+                                            <span class="resource-tag">@recurso</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de la solicitud -->
+                <div class="col-12 col-md-6">
+                    <div class="card border-0 shadow-lg h-100">
+                        <div class="card-header d-flex align-items-center py-3" style="background-color: #000039; color: #f8f69f;">
+                            <i class="fas fa-file-alt fs-4 me-2"></i>
+                            <h5 class="mb-0">Detalles de la Solicitud</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="request-info">
+                                <div class="request-detail-item">
+                                    <span class="label"><i class="fas fa-history me-2"></i>Experiencia previa:</span>
+                                    <span class="value">@(Model.ExperienciaPrevia.HasValue ? (Model.ExperienciaPrevia.Value ? "Sí" : "No") : "No especificado")</span>
+                                </div>
+                                <div class="request-detail-item">
+                                    <span class="label"><i class="fas fa-home me-2"></i>Tipo de vivienda indicado:</span>
+                                    <span class="value">@(string.IsNullOrEmpty(Model.TipoVivienda) ? "No especificado" : Model.TipoVivienda)</span>
+                                </div>
+                                <div class="request-detail-item">
+                                    <span class="label"><i class="fas fa-paw me-2"></i>Otros animales indicados:</span>
+                                    <span class="value">@(Model.OtrosAnimales.HasValue ? (Model.OtrosAnimales.Value ? "Sí" : "No") : "No especificado")</span>
+                                </div>
+                                <div class="request-detail-item">
+                                    <span class="label"><i class="fas fa-clock me-2"></i>Tiempo en casa indicado:</span>
+                                    <span class="value">@(string.IsNullOrEmpty(Model.TiempoEnCasa) ? "No especificado" : Model.TiempoEnCasa)</span>
+                                </div>
+                            </div>
+
+                            <div class="resources-section mt-4">
+                                <h6 class="section-subtitle mb-2"><i class="fas fa-wallet me-2"></i>Recursos indicados en solicitud:</h6>
+                                <div class="resources-tags">
+                                    @if (Model.Recursos != null && Model.Recursos.Any())
+                                    {
+                                        @foreach (var recurso in Model.Recursos)
+                                        {
+                                                    <span class="resource-tag">@recurso</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                            <span class="text-muted">No especificados</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Evaluación de compatibilidad -->
+                            <div class="compatibility-section mt-4">
+                                <h6 class="section-subtitle mb-2"><i class="fas fa-balance-scale me-2"></i>Evaluación de compatibilidad:</h6>
+                                <div class="compatibility-meter">
+                                    @{
+                                        var compatibilidadScore = CalcularCompatibilidad(Model);
+                                        var compatibilidadClass = compatibilidadScore > 75 ? "high" :
+                                                                  compatibilidadScore > 50 ? "medium" : "low";
+                                    }
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-@compatibilidadClass" 
+                                            role="progressbar" 
+                                            style="width: @compatibilidadScore%;" 
+                                            aria-valuenow="@compatibilidadScore" 
+                                            aria-valuemin="0" 
+                                            aria-valuemax="100">
+                                            @compatibilidadScore%
+                                        </div>
+                                    </div>
+                                    <p class="mt-2 compatibility-text text-@compatibilidadClass">
+                                        <i class="fas @(compatibilidadScore > 75 ? "fa-thumbs-up" : 
+                                                      compatibilidadScore > 50 ? "fa-check" : "fa-exclamation-triangle") me-1"></i>
+                                        @(compatibilidadScore > 75 ? "Alta compatibilidad" :
+                                              compatibilidadScore > 50 ? "Compatibilidad moderada" : "Baja compatibilidad")
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Page Title Styling */
+    .page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+    .title-highlight::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(to right, #007bff, #00c6ff);
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.3s ease;
+    }
+
+    .page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Pet Card Styling */
+    .pet-card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .pet-card-image {
+        height: 250px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .pet-card:hover .pet-card-image {
+        transform: scale(1.05);
+    }
+
+    .pet-card-overlay {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .pet-card-badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .pet-status-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .pet-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #000039;
+    }
+
+    .section-title {
+        position: relative;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(to right, #007bff, #00c6ff);
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #555;
+    }
+
+    /* Pet Details Styling */
+    .pet-detail-item, .request-detail-item, .adopter-detail-item {
+        margin-bottom: 0.75rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pet-detail-item .label, .request-detail-item .label, .adopter-detail-item .label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .pet-detail-item .value, .request-detail-item .value, .adopter-detail-item .value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Health Tags Styling */
+    .health-tags, .compatibility-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .health-tag, .compatibility-tag {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .health-tag.active, .compatibility-tag.active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .health-tag.inactive, .compatibility-tag.inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    /* Resources Tags */
+    .resources-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .resource-tag {
+        background-color: #e9ecef;
+        color: #495057;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Status Card */
+    .status-card {
+        border-left: 5px solid transparent;
+    }
+
+    .status-card.pending {
+        border-left-color: #ffc107;
+    }
+
+    .status-card.approved {
+        border-left-color: #28a745;
+    }
+
+    .status-card.rejected {
+        border-left-color: #dc3545;
+    }
+
+    .request-status-large {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: white;
+    }
+
+    /* Compatibility Meter */
+    .compatibility-meter .progress {
+        height: 10px;
+        border-radius: 5px;
+    }
+
+    .compatibility-text {
+        font-weight: 600;
+    }
+
+    .bg-high {
+        background-color: #28a745 !important;
+    }
+
+    .bg-medium {
+        background-color: #ffc107 !important;
+    }
+
+    .bg-low {
+        background-color: #dc3545 !important;
+    }
+
+    .text-high {
+        color: #28a745 !important;
+    }
+
+    .text-medium {
+        color: #ffc107 !important;
+    }
+
+    .text-low {
+        color: #dc3545 !important;
+    }
+
+    /* Hover effects */
+    .pet-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+</style>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function confirmarSolicitud(idSolicitud, estado) {
+        // Confirmación mediante SweetAlert2
+        let mensaje = estado === 'Aprobada'
+            ? '¿Estás seguro de aprobar esta solicitud? La mascota será marcada como adoptada.'
+            : '¿Estás seguro de rechazar esta solicitud?';
+        let iconoConfirmacion = estado === 'Aprobada' ? 'success' : 'warning';
+
+        Swal.fire({
+            title: `¿${estado === 'Aprobada' ? 'Aprobar' : 'Rechazar'} solicitud?`,
+            text: mensaje,
+            icon: iconoConfirmacion,
+            showCancelButton: true,
+            confirmButtonColor: estado === 'Aprobada' ? '#28a745' : '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: estado === 'Aprobada' ? 'Sí, aprobar' : 'Sí, rechazar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                procesarSolicitud(idSolicitud, estado);
+            }
+        });
+    }
+
+    function procesarSolicitud(idSolicitud, estado) {
+        // Obtener el token antiforgery
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        // Enviar solicitud fetch para procesar la solicitud
+        fetch('/Refugio/ProcesarSolicitud', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `idSolicitud=${idSolicitud}&nuevoEstado=${estado}`
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error al procesar la solicitud');
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Procesado!',
+                    text: data.mensaje,
+                    icon: 'success',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    // Recargar la página para mostrar los cambios
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.mensaje,
+                    icon: 'error'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Ocurrió un error al procesar la solicitud',
+                icon: 'error'
+            });
+        });
+    }
+</script>
+
+@functions {
+    string GetStatusColor(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "warning",
+            "Aprobada" => "success",
+            "Rechazada" => "danger",
+            "Disponible" => "info",
+            "Adoptado" => "success",
+            _ => "secondary"
+        };
+    }
+
+    string GetStatusIcon(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "fa-clock",
+            "Aprobada" => "fa-check-circle",
+            "Rechazada" => "fa-times-circle",
+            "Disponible" => "fa-paw",
+            "Adoptado" => "fa-home",
+            _ => "fa-question-circle"
+        };
+    }
+
+    string GetEdad(DateTime fechaNacimiento)
+    {
+        var edad = DateTime.Now.Year - fechaNacimiento.Year;
+        if (DateTime.Now.DayOfYear < fechaNacimiento.DayOfYear)
+            edad--;
+
+        if (edad == 0)
+        {
+            var meses = (DateTime.Now.Month - fechaNacimiento.Month) +
+                (DateTime.Now.Day < fechaNacimiento.Day ? -1 : 0);
+            return $"{meses} {(meses == 1 ? "mes" : "meses")}";
+        }
+
+        return $"{edad} {(edad == 1 ? "año" : "años")}";
+    }
+
+    int CalcularCompatibilidad(SolicitudAdopcion solicitud)
+    {
+        int puntos = 0;
+        int total = 0;
+
+        // Compatibilidad de vivienda
+        if (!string.IsNullOrEmpty(solicitud.TipoVivienda) &&
+            solicitud.TipoVivienda == solicitud.Adoptante.TipoVivienda)
+        {
+            puntos += 20;
+        }
+        total += 20;
+
+        // Compatibilidad con otros animales
+        if (solicitud.OtrosAnimales.HasValue &&
+            solicitud.Mascota.CompatibleConOtrosAnimales == solicitud.OtrosAnimales.Value)
+        {
+            puntos += 20;
+        }
+        total += 20;
+
+        // Experiencia previa
+        if (solicitud.ExperienciaPrevia.HasValue && solicitud.ExperienciaPrevia.Value)
+        {
+            puntos += 15;
+        }
+        total += 15;
+
+        // Recursos disponibles
+        if (solicitud.Recursos != null && solicitud.Recursos.Any() &&
+            solicitud.Adoptante.RecursosDisponibles != null &&
+            solicitud.Adoptante.RecursosDisponibles.Any())
+        {
+            int recursosCoincidentes = solicitud.Recursos.Intersect(solicitud.Adoptante.RecursosDisponibles).Count();
+            int porcentajeRecursos = (recursosCoincidentes * 25) / solicitud.Recursos.Count;
+            puntos += porcentajeRecursos;
+        }
+        total += 25;
+
+        // Tiempo en casa
+        if (!string.IsNullOrEmpty(solicitud.TiempoEnCasa) &&
+            solicitud.TiempoEnCasa == solicitud.Adoptante.TiempoEnCasa)
+        {
+            puntos += 20;
+        }
+        total += 20;
+
+        // Cálculo del porcentaje final
+        return (puntos * 100) / total;
+    }
+}

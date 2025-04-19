@@ -1,0 +1,170 @@
+﻿@model Usuario
+
+<div class="container-fluid px-4 py-5 login-container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="pet-page-title text-center mb-4">
+                <span class="title-highlight">Bienvenido</span> de nuevo a
+                <span class="title-highlight">ZuvoPet</span>
+                <span class="title-emoji">🐾</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-body p-4">
+                    <form asp-action="Login" method="post" class="login-form">
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="NombreUsuario" class="form-control" id="nombreusuario" name="nombreusuario" required />
+                            <label asp-for="NombreUsuario">Nombre de Usuario</label>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input asp-for="ContrasenaLimpia" type="password" class="form-control" id="contrasena" name="contrasena" required />
+                            <label asp-for="ContrasenaLimpia">Contraseña</label>
+                        </div>
+
+                        <div class="text-danger text-center mb-3">@ViewData["MENSAJE"]</div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn botoninicio btn-lg shadow-sm adopt-btn w-100">
+                                <i class="fas fa-paw me-2"></i>Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .botoninicio {
+        background-color: #000039;
+        color: #ffffff;
+        border: none;
+    }
+
+        .botoninicio:hover {
+            background-color: transparent;
+            color: #bab986;
+            border: 2px solid #bab986;
+        }
+    /* Page Title Styling */
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #bab986, #bab986);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Card styling */
+    .card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+        .card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+    /* Form styling */
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e1e5ea;
+        padding: 1.5rem 1rem 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: none;
+            border-color: #bab986;
+            border-width: 2px;
+        }
+
+    .form-floating label {
+        padding: 1rem;
+    }
+
+    /* Button styling */
+    .adopt-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+    }
+
+        .adopt-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .adopt-btn:active {
+            transform: translateY(0);
+        }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .pet-page-title
+
+    {
+        font-size: 2rem;
+    }
+
+    }
+
+    .login-container {
+        background-color: #f8f9fa;
+        /* Quitamos min-height: 100vh para que no ocupe toda la pantalla */
+        padding: 3rem 0; /* Añadimos padding vertical para dar espacio */
+        border-radius: 15px; /* Opcional: bordes redondeados */
+        margin: 2rem auto; /* Opcional: margen para separar del borde de la ventana */
+        /* Quitamos display: flex y sus propiedades relacionadas */
+    }
+
+    .login-form {
+        padding: 1rem;
+    }
+
+    .text-danger {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+</style>

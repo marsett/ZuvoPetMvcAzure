@@ -1,0 +1,576 @@
+﻿@model Refugio
+@{
+    ViewData["Title"] = "Panel de Control - Refugio";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Encabezado con estilo mejorado -->
+    <div class="panel-welcome-container position-relative mb-5">
+        <div class="decorative-paw decorative-paw-1">🐾</div>
+        <div class="decorative-paw decorative-paw-2">🐾</div>
+        <div class="text-center py-4">
+            <h1 class="panel-welcome-title">
+                <i class="fas fa-home"></i> @Model.NombreRefugio
+            </h1>
+            <p class="panel-welcome-subtitle">
+                Panel de control para la gestión del refugio
+            </p>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen con estilo mejorado -->
+    <div class="row mb-5">
+        <!-- Capacidad -->
+        <div class="col-12 col-lg-6 custom-breakpoint mb-3">
+            <div class="card h-100 border-0 shadow-lg overflow-hidden">
+                <div class="card-body dashboard-card bg-primary text-white">
+                    <div class="card-icon-container">
+                        <i class="fas fa-paw fa-3x"></i>
+                    </div>
+                    <h5 class="card-title">Capacidad</h5>
+                    <h2 class="display-4 mb-0">@Model.CantidadAnimales / @Model.CapacidadMaxima</h2>
+                    @{
+                        var porcentajeOcupacion = (Model.CantidadAnimales * 100) / (Model.CapacidadMaxima > 0 ? Model.CapacidadMaxima : 1);
+                    }
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @porcentajeOcupacion%;"
+                             aria-valuenow="@porcentajeOcupacion" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <p class="mt-2 mb-0">@porcentajeOcupacion% de ocupación</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adopciones Rechazadas -->
+        <div class="col-12 col-lg-6 custom-breakpoint mb-3">
+            <div class="card h-100 border-0 shadow-lg overflow-hidden">
+                <div class="card-body dashboard-card bg-danger text-white">
+                    <div class="card-icon-container">
+                        <i class="fas fa-times-circle fa-3x"></i>
+                    </div>
+                    <h5 class="card-title">Rechazadas</h5>
+                    <h2 class="display-4 mb-0">@ViewBag.SolicitudesRechazadas</h2>
+                    <p class="mt-3 mb-0">Solicitudes rechazadas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mascotas Adoptadas -->
+        <div class="col-12 col-lg-6 custom-breakpoint mb-3">
+            <div class="card h-100 border-0 shadow-lg overflow-hidden">
+                <div class="card-body dashboard-card bg-success text-white">
+                    <div class="card-icon-container">
+                        <i class="fas fa-home fa-3x"></i>
+                    </div>
+                    <h5 class="card-title">Adoptadas</h5>
+                    <h2 class="display-4 mb-0">@ViewBag.MascotasAdoptadas</h2>
+                    <p class="mt-3 mb-0">Encuentran hogar</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nuevas Solicitudes -->
+        <div class="col-12 col-lg-6 custom-breakpoint mb-3">
+            <div class="card h-100 border-0 shadow-lg overflow-hidden">
+                <div class="card-body dashboard-card bg-info text-white">
+                    <div class="card-icon-container">
+                        <i class="fas fa-file-alt fa-3x"></i>
+                    </div>
+                    <h5 class="card-title">Solicitudes</h5>
+                    <h2 class="display-4 mb-0">@ViewBag.NuevasSolicitudes</h2>
+                    <p class="mt-3 mb-0">Pendientes de revisión</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos y Estadísticas -->
+    <div class="row mb-4">
+        <!-- Título de sección con estilo mejorado -->
+        <div class="col-12 text-center mb-4">
+            <h2 class="featured-stats-title">📊 Estadísticas 📊</h2>
+            <hr class="mb-4 w-50 mx-auto">
+        </div>
+
+        <!-- Gráfico de Especies -->
+        <div class="col-md-12 mb-6">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2"></i> Distribución por Especies</h5>
+                </div>
+                <div class="card-body chart-container">
+                    <div id="chart-wrapper" class="position-relative">
+                        @if (ViewBag.EspeciesData != null && ViewBag.EspeciesData.Length > 0)
+                        {
+                            <canvas id="especiesChart"></canvas>
+                            <div id="especies-legend" class="mt-4 chart-legend text-center"></div>
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                                <h4>No hay datos disponibles</h4>
+                                <p>Actualmente no hay información sobre especies para mostrar en el gráfico.</p>
+                                <p class="mt-2">Agrega animales de diferentes especies al refugio para visualizar su distribución.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Anular el comportamiento predeterminado */
+    @@media (min-width: 1200px) and (max-width: 1429px) {
+        .col-xl-3
+
+    {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    }
+
+    /* Aplicar el comportamiento deseado a partir de 1300px */
+    @@media (min-width: 1430px) {
+        .custom-breakpoint
+
+    {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+
+    }
+    /* Estilos del encabezado del panel */
+    .panel-welcome-container {
+        position: relative;
+        background: linear-gradient(135deg, #f6f8f9 0%, #e5ebee 100%);
+        padding: 3rem 0;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .panel-welcome-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+        .panel-welcome-title i {
+            color: #007bff;
+            margin-right: 10px;
+        }
+
+    .panel-welcome-subtitle {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin-bottom: 0;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Paws decorativas como en la vista de adoptante */
+    .decorative-paw {
+        position: absolute;
+        opacity: 0.1;
+        font-size: 10rem;
+        z-index: 0;
+    }
+
+    .decorative-paw-1 {
+        top: -50px;
+        left: -50px;
+        transform: rotate(-20deg);
+    }
+
+    .decorative-paw-2 {
+        bottom: -50px;
+        right: -50px;
+        transform: rotate(20deg);
+    }
+
+    /* Estilo para las tarjetas del dashboard */
+    .dashboard-card {
+        position: relative;
+        border-radius: 15px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 1.5rem;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+        }
+
+    .card-header {
+        border-top-left-radius: 15px !important;
+        border-top-right-radius: 15px !important;
+    }
+
+    .card-icon-container {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0.2;
+    }
+
+    /* Título para sección de estadísticas */
+    .featured-stats-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+        .featured-stats-title::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, #007bff, #00c6ff);
+        }
+
+    /* Mejoras en el gráfico */
+    canvas {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+</style>
+
+<style>
+    /* Contenedor principal del gráfico con mejor manejo responsive */
+    .chart-container {
+        padding: 1.5rem;
+    }
+
+    #chart-wrapper {
+        width: 100%;
+        max-width: 650px;
+        margin: 0 auto;
+        min-height: 300px;
+    }
+
+    /* Estilos para la leyenda personalizada */
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        background-color: #f8f9fa;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+        .legend-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .legend-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .legend-value {
+        margin-left: 5px;
+        font-weight: 700;
+        opacity: 0.7;
+    }
+
+    /* Animación de entrada para el gráfico */
+    @@keyframes fadeInChart {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    #especiesChart {
+        animation: fadeInChart 0.8s ease-out forwards;
+    }
+
+    /* Mejora para dispositivos móviles */
+    @@media (max-width: 768px) {
+        #chart-wrapper
+
+    {
+        max-width: 100%;
+        min-height: 250px;
+    }
+
+    .legend-item {
+        padding: 0.4rem 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Datos del gráfico
+            const especiesLabels = @Html.Raw(Json.Serialize(ViewBag.EspeciesLabels));
+            const especiesData = @Html.Raw(Json.Serialize(ViewBag.EspeciesData));
+
+            if (!especiesLabels || !especiesData || especiesLabels.length === 0) return;
+
+            // Colores para el gráfico
+            const backgroundColors = [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(199, 199, 199, 0.8)',
+                'rgba(0, 0, 0, 0.8)'
+            ];
+
+            const borderColors = backgroundColors.map(color => color.replace('0.8', '1'));
+
+            // Calcular porcentajes para mostrar en la leyenda
+            const total = especiesData.reduce((sum, value) => sum + value, 0);
+            const percentages = especiesData.map(value => ((value / total) * 100).toFixed(1));
+
+            // Elemento canvas
+            const ctx = document.getElementById('especiesChart').getContext('2d');
+
+            // Crear instancia de Chart.js
+            const chart = new Chart(ctx, {
+                type: 'doughnut', // Cambiado de pie a doughnut para mejor visualización
+                data: {
+                    labels: especiesLabels,
+                    datasets: [{
+                        data: especiesData,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 2,
+                        hoverOffset: 15,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '50%', // Ajuste para el doughnut
+                    plugins: {
+                        legend: {
+                            display: false // Desactivamos la leyenda por defecto
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeOutCirc'
+                    },
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        }
+                    }
+                }
+            });
+
+            // Crear leyenda personalizada
+            const legendContainer = document.getElementById('especies-legend');
+            if (legendContainer) {
+                especiesLabels.forEach((label, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'legend-item';
+
+                    const colorSpan = document.createElement('span');
+                    colorSpan.className = 'legend-color';
+                    colorSpan.style.backgroundColor = backgroundColors[index];
+
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'legend-text';
+                    textSpan.textContent = label;
+
+                    const valueSpan = document.createElement('span');
+                    valueSpan.className = 'legend-value';
+                    valueSpan.textContent = `(${percentages[index]}%)`;
+
+                    item.appendChild(colorSpan);
+                    item.appendChild(textSpan);
+                    item.appendChild(valueSpan);
+
+                    // Agregar interactividad
+                    item.addEventListener('mouseover', () => {
+                        chart.setActiveElements([{datasetIndex: 0, index: index}]);
+                        chart.update();
+                    });
+
+                    item.addEventListener('mouseout', () => {
+                        chart.setActiveElements([]);
+                        chart.update();
+                    });
+
+                    item.addEventListener('click', () => {
+                        const meta = chart.getDatasetMeta(0);
+                        const isHidden = meta.data[index].hidden || false;
+
+                        chart.toggleDataVisibility(index);
+                        chart.update();
+
+                        // Actualizar estilo visual de la leyenda
+                        if (!isHidden) {
+                            item.style.opacity = "0.5";
+                            item.style.textDecoration = "line-through";
+                        } else {
+                            item.style.opacity = "1";
+                            item.style.textDecoration = "none";
+                        }
+                    });
+
+                    legendContainer.appendChild(item);
+                });
+            }
+
+            // Función para manejar el resize
+            function handleResize() {
+                const parentWidth = chart.canvas.parentNode.clientWidth;
+
+                // Ajustar tamaños según el ancho disponible
+                if (parentWidth < 400) {
+                    chart.options.plugins.tooltip.titleFont.size = 14;
+                    chart.options.plugins.tooltip.bodyFont.size = 12;
+                    chart.options.plugins.tooltip.padding = 8;
+                } else {
+                    chart.options.plugins.tooltip.titleFont.size = 16;
+                    chart.options.plugins.tooltip.bodyFont.size = 14;
+                    chart.options.plugins.tooltip.padding = 12;
+                }
+
+                chart.update();
+            }
+
+            // Escuchar eventos de resize
+            window.addEventListener('resize', handleResize);
+
+            // Llamar inicialmente para configurar según tamaño actual
+            handleResize();
+        });
+    </script>
+}
+
+<style>
+    /* Estilos para contenedor estable del gráfico */
+    .chart-stable-container {
+        padding: 20px;
+        position: relative;
+    }
+
+    /* Mejor adaptación del contenedor del gráfico a diferentes tamaños de pantalla */
+    .chart-wrapper {
+        position: relative;
+        width: 100%;
+        height: auto; /* Cambiado de height: 0 a height: auto */
+        min-height: 300px; /* Altura mínima para el gráfico */
+        max-height: 500px; /* Altura máxima para el gráfico */
+        padding-bottom: 0; /* Eliminamos el padding-bottom que forzaba un ratio */
+    }
+
+        .chart-wrapper canvas {
+            position: relative; /* Cambiado de position: absolute */
+            width: 100% !important;
+            height: auto !important; /* Permite que la altura se ajuste automáticamente */
+            max-height: 500px;
+        }
+
+    /* Eliminar cualquier animación en el contenedor que pueda afectar al gráfico */
+    .card, .chart-stable-container, .chart-wrapper {
+        transition: none !important;
+    }
+
+    /* Media query manteniendo estabilidad */
+    @@media (max-width: 991px) {
+        .chart-wrapper
+
+    {
+        padding-bottom: 70%; /* Ligeramente más alto en móviles */
+    }
+
+        canvas#especiesChart {
+            display: none !important; /* Fuerza la ocultación con !important */
+        }
+        /* Opcional: si quieres agregar un texto alternativo */
+        .chart-wrapper:has(#especiesChart) {
+            position: relative;
+        }
+
+            .chart-wrapper:has(#especiesChart)::before {
+                content: "Gráfico no disponible en versión móvil";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #6c757d;
+            }
+    }
+</style>

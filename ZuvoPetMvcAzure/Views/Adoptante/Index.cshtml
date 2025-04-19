@@ -1,0 +1,640 @@
+﻿@model VistaInicioAdoptante
+
+@{
+    string nombreUsuario = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+}
+
+<div class="pet-welcome-container position-relative">
+    <div class="decorative-paw decorative-paw-1">🐾</div>
+    <div class="decorative-paw decorative-paw-2">🐾</div>
+    <div class="container text-center">
+        <h1 class="pet-welcome-title">
+            🐾 ¡Bienvenido, <span class="welcome-name">@nombreUsuario</span>! 🐾
+        </h1>
+        <p class="pet-welcome-subtitle">
+            Sumérgete en un mundo de amor incondicional. Cada mascota aquí tiene una historia única y está esperando encontrar su hogar para siempre.
+        </p>
+    </div>
+</div>
+
+<div class="container text-center my-5">
+    <h2 class="featured-pets-title">🌟 Mascotas Destacadas 🌟</h2>
+    <hr class="mb-4 w-50 mx-auto">
+</div>
+
+<!-- Div para dispositivos móviles -->
+<div id="carrusel-movil" class="carousel slide carousel-dark w-100 mx-auto d-block d-md-none" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        @for (int i = 0; i < Model.MascotasDestacadas.Count; i++)
+        {
+            var mascota = Model.MascotasDestacadas[i];
+
+            var años = mascota.Edad / 12;
+            var meses = mascota.Edad % 12;
+
+            <div class="carousel-item @(i == 0 ? "active" : "")">
+                <div class="col-md-6">
+                    <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                        <div class="position-relative">
+                            <img src="~/images/@mascota.Foto"
+                                 class="card-img-top pet-card-image"
+                                 alt=@mascota.Nombre>
+                            <div class="pet-card-overlay">
+                                <div class="pet-card-badges">
+                                    <div class="pet-sex-badge @(@mascota.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                        <i class="fas @(@mascota.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="pet-card-content p-4">
+                                <div class="pet-name-container">
+                                    <h4 class="pet-name">
+                                        @mascota.Nombre
+                                    </h4>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <a asp-controller="Adoptante"
+                                       asp-action="DetallesMascota"
+                                       asp-route-idmascota="@mascota.Id"
+                                       class="btn btn-primary btn-lg w-100 adopt-btn">
+                                        Quiero Adoptar a @mascota.Nombre
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#carrusel-movil" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon text-black" aria-hidden="true" style="display:none;"></span>
+        <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carrusel-movil" data-bs-slide="next">
+        <span class="carousel-control-next-icon text-black" aria-hidden="true" style="display:none;"></span>
+        <span class="visually-hidden">Siguiente</span>
+    </button>
+</div>
+
+<div class="d-none d-md-block" id="carrusel-tablet">
+    <div id="carrusel-tablet-inner" class="carousel slide carousel-dark w-100 mx-auto" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            @for (int i = 0; i < Model.MascotasDestacadas.Count; i += 2)
+            {
+                var mascota1 = Model.MascotasDestacadas[i];
+                var mascota2 = (i + 1 < Model.MascotasDestacadas.Count) ? Model.MascotasDestacadas[i + 1] : null;
+
+                var años1 = mascota1.Edad / 12;
+                var meses1 = mascota1.Edad % 12;
+
+                var años2 = mascota2.Edad / 12;
+                var meses2 = mascota2.Edad % 12;
+
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                                <div class="position-relative">
+                                    <img src="~/images/@mascota1.Foto"
+                                         class="card-img-top pet-card-image"
+                                         alt=@mascota1.Nombre>
+                                    <div class="pet-card-overlay">
+                                        <div class="pet-card-badges">
+                                            <div class="pet-sex-badge @(@mascota1.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                                <i class="fas @(@mascota1.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="pet-card-content p-4">
+                                        <div class="pet-name-container">
+                                            <h4 class="pet-name">
+                                                @mascota1.Nombre
+                                            </h4>
+                                        </div>
+
+                                        <div class="text-center mt-4">
+                                            <a asp-controller="Adoptante"
+                                               asp-action="DetallesMascota"
+                                               asp-route-idmascota="@mascota1.Id"
+                                               class="btn btn-primary btn-lg w-100 adopt-btn">
+                                                Quiero Adoptar a @mascota1.Nombre
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                                <div class="position-relative">
+                                    <img src="~/images/@mascota2.Foto"
+                                         class="card-img-top pet-card-image"
+                                         alt=@mascota2.Nombre>
+                                    <div class="pet-card-overlay">
+                                        <div class="pet-card-badges">
+                                            <div class="pet-sex-badge @(@mascota2.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                                <i class="fas @(@mascota2.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="pet-card-content p-4">
+                                        <div class="pet-name-container">
+                                            <h4 class="pet-name">
+                                                @mascota2.Nombre
+                                            </h4>
+                                        </div>
+
+                                        <div class="text-center mt-4">
+                                            <a asp-controller="Adoptante"
+                                               asp-action="DetallesMascota"
+                                               asp-route-idmascota="@mascota2.Id"
+                                               class="btn btn-primary btn-lg w-100 adopt-btn">
+                                                Quiero Adoptar a @mascota2.Nombre
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#carrusel-tablet-inner" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon text-black" aria-hidden="true" style="display:none;"></span>
+            <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carrusel-tablet-inner" data-bs-slide="next">
+            <span class="carousel-control-next-icon text-black" aria-hidden="true" style="display:none;"></span>
+            <span class="visually-hidden">Siguiente</span>
+        </button>
+    </div>
+</div>
+
+<!-- Div para tamaños mayores a móvil -->
+<div class="d-none d-sm-block d-md-none" id="carrusel-escritorio">
+    <div id="carrusel-escritorio-inner" class="carousel slide carousel-dark w-100 mx-auto" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            @for (int i = 0; i < Model.MascotasDestacadas.Count; i += 3)
+            {
+                var mascota1 = Model.MascotasDestacadas[i];
+                var mascota2 = (i + 1 < Model.MascotasDestacadas.Count) ? Model.MascotasDestacadas[i + 1] : null;
+                var mascota3 = (i + 2 < Model.MascotasDestacadas.Count) ? Model.MascotasDestacadas[i + 2] : null;
+
+                var años1 = mascota1.Edad / 12;
+                var meses1 = mascota1.Edad % 12;
+
+                var años2 = mascota2.Edad / 12;
+                var meses2 = mascota2.Edad % 12;
+
+                var años3 = mascota3.Edad / 12;
+                var meses3 = mascota3.Edad % 12;
+
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                                <div class="position-relative">
+                                    <img src="~/images/@mascota1.Foto"
+                                         class="card-img-top pet-card-image"
+                                         alt=@mascota1.Nombre>
+                                    <div class="pet-card-overlay">
+                                        <div class="pet-card-badges">
+                                            <div class="pet-sex-badge @(@mascota1.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                                <i class="fas @(@mascota1.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="pet-card-content p-4">
+                                        <div class="pet-name-container">
+                                            <h4 class="pet-name">
+                                                @mascota1.Nombre
+                                            </h4>
+                                        </div>
+
+                                        <div class="text-center mt-4">
+                                            <a asp-controller="Adoptante"
+                                               asp-action="DetallesMascota"
+                                               asp-route-idmascota="@mascota1.Id"
+                                               class="btn btn-primary btn-lg w-100 adopt-btn">
+                                                Quiero Adoptar a @mascota1.Nombre
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                                <div class="position-relative">
+                                    <img src="~/images/@mascota2.Foto"
+                                         class="card-img-top pet-card-image"
+                                         alt=@mascota2.Nombre>
+                                    <div class="pet-card-overlay">
+                                        <div class="pet-card-badges">
+                                            <div class="pet-sex-badge @(@mascota2.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                                <i class="fas @(@mascota2.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="pet-card-content p-4">
+                                        <div class="pet-name-container">
+                                            <h4 class="pet-name">
+                                                @mascota2.Nombre
+                                            </h4>
+                                        </div>
+
+                                        <div class="text-center mt-4">
+                                            <a asp-controller="Adoptante"
+                                               asp-action="DetallesMascota"
+                                               asp-route-idmascota="@mascota2.Id"
+                                               class="btn btn-primary btn-lg w-100 adopt-btn">
+                                                Quiero Adoptar a @mascota2.Nombre
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+                                <div class="position-relative">
+                                    <img src="~/images/@mascota3.Foto"
+                                         class="card-img-top pet-card-image"
+                                         alt=@mascota3.Nombre>
+                                    <div class="pet-card-overlay">
+                                        <div class="pet-card-badges">
+                                            <div class="pet-sex-badge @(@mascota3.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                                                <i class="fas @(@mascota3.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="pet-card-content p-4">
+                                        <div class="pet-name-container">
+                                            <h4 class="pet-name">
+                                                @mascota3.Nombre
+                                            </h4>
+                                        </div>
+
+                                        <div class="text-center mt-4">
+                                            <a asp-controller="Adoptante"
+                                               asp-action="DetallesMascota"
+                                               asp-route-idmascota="@mascota3.Id"
+                                               class="btn btn-primary btn-lg w-100 adopt-btn">
+                                                Quiero Adoptar a @mascota3.Nombre
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#carrusel-escritorio-inner" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon text-black" aria-hidden="true" style="display:none;"></span>
+            <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carrusel-escritorio-inner" data-bs-slide="next">
+            <span class="carousel-control-next-icon text-black" aria-hidden="true" style="display:none;"></span>
+            <span class="visually-hidden">Siguiente</span>
+        </button>
+    </div>
+</div>
+
+<style>
+    .pet-welcome-container {
+        position: relative;
+        background: linear-gradient(135deg, #f6f8f9 0%, #e5ebee 100%);
+        padding: 4rem 0;
+        overflow: hidden;
+    }
+
+    .pet-welcome-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 3rem;
+        font-weight: 900;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .welcome-name {
+        color: #000039;
+        display: inline-block;
+        position: relative;
+    }
+
+        .welcome-name::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #bab986, #bab986);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-welcome-container:hover .welcome-name::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .pet-welcome-subtitle {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .featured-pets-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .decorative-paw {
+        position: absolute;
+        opacity: 0.1;
+        font-size: 10rem;
+        z-index: 0;
+    }
+
+    .decorative-paw-1 {
+        top: -50px;
+        left: -50px;
+        transform: rotate(-20deg);
+    }
+
+    .decorative-paw-2 {
+        bottom: -50px;
+        right: -50px;
+        transform: rotate(20deg);
+    }
+
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #007bff, #00c6ff);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    .pet-species-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 2rem;
+        background: rgba(255,255,255,0.8);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .pet-sex-badge {
+        font-size: 2rem;
+        background: rgba(255,255,255,0.8);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .pet-name-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .pet-name-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .pet-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #007bff;
+        text-align: center;
+    }
+
+        .pet-name::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 123, 255, 0.2);
+            z-index: -1;
+            transform: rotate(-1deg);
+        }
+
+    .bg-pink {
+        background-color: #ff69b4 !important;
+    }
+
+    .pet-card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .pet-card-image {
+        height: 300px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .pet-card:hover .pet-card-image {
+        transform: scale(1.1);
+    }
+
+    .pet-card-overlay {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .pet-card-badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .pet-characteristics {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+    }
+
+    .characteristic {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .characteristic-icon {
+        background-color: rgba(0, 123, 255, 0.1);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .characteristic-icon i {
+            font-size: 1.5rem;
+        }
+
+    .characteristic-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .characteristic-info .label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .characteristic-info .value {
+            font-weight: bold;
+            color: #333;
+        }
+
+    .adopt-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+
+    .pet-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+
+    .carousel-item {
+        transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+    }
+
+        
+
+    @@media (max-width: 768px) {
+    #carrusel-movil
+
+    {
+    display: block !important;
+    }
+
+    #carrusel-tablet, #carrusel-escritorio {
+    display: none !important;
+    }
+
+    }
+
+    @@media (min-width: 768px) and (max-width: 1110px) {
+    #carrusel-tablet
+
+    {
+    display: block !important;
+    }
+
+
+
+    #carrusel-movil, #carrusel-escritorio {
+    display: none !important;
+    }
+
+    }
+
+    @@media (min-width: 1111px) {
+    #carrusel-escritorio
+
+    {
+    display: block !important;
+    }
+
+    #carrusel-movil, #carrusel-tablet {
+    display: none !important;
+    }
+
+    }
+</style>

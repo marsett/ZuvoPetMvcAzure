@@ -1,0 +1,242 @@
+﻿@model Adoptante
+@{
+    ViewData["Title"] = "Formulario Adoptante";
+}
+
+<div class="container-fluid px-4 py-5 login-container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="pet-page-title text-center mb-4">
+                <span class="title-highlight">Completa</span> tu perfil de
+                <span class="title-highlight">adoptante</span>
+                <span class="title-emoji">🐾</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-body p-4">
+                    <form method="post" class="login-form">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Nombre" class="form-control" id="Nombre" placeholder="Tu nombre" required />
+                            <label asp-for="Nombre">Nombre</label>
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select asp-for="TipoVivienda" class="form-select" id="TipoVivienda">
+                                <option value="Casa">Casa</option>
+                                <option value="Piso">Piso</option>
+                                <option value="Dúplex">Dúplex</option>
+                                <option value="Chalet">Chalet</option>
+                            </select>
+                            <label asp-for="TipoVivienda">Tipo de Vivienda</label>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="TieneJardin" class="form-check-input" type="checkbox" id="TieneJardin" />
+                                <label class="form-check-label" for="TieneJardin">¿Tienes jardín?</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="OtrosAnimales" class="form-check-input" type="checkbox" id="OtrosAnimales" />
+                                <label class="form-check-label" for="OtrosAnimales">¿Tienes otros animales?</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Recursos Disponibles</label>
+                            <div class="row row-cols-1 row-cols-md-2 g-3">
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="RecursosDisponibles" class="form-check-input" value="Espacio suficiente" id="recurso1" />
+                                        <label class="form-check-label" for="recurso1">Espacio suficiente</label>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="RecursosDisponibles" class="form-check-input" value="Estilo de vida adecuado" id="recurso2" />
+                                        <label class="form-check-label" for="recurso2">Estilo de vida adecuado</label>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="RecursosDisponibles" class="form-check-input" value="Compromiso emocional" id="recurso3" />
+                                        <label class="form-check-label" for="recurso3">Compromiso emocional</label>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="RecursosDisponibles" class="form-check-input" value="Recursos financieros" id="recurso4" />
+                                        <label class="form-check-label" for="recurso4">Recursos financieros</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <select asp-for="TiempoEnCasa" class="form-select" id="TiempoEnCasa">
+                                <option value="Menos de 4 horas">Menos de 4 horas</option>
+                                <option value="4-8 horas">4-8 horas</option>
+                                <option value="Más de 8 horas">Más de 8 horas</option>
+                            </select>
+                            <label asp-for="TiempoEnCasa">Tiempo que pasas en casa</label>
+                        </div>
+
+                        <input type="hidden" asp-for="IdUsuario" />
+
+                        <div class="text-center">
+                            <button type="submit" class="btn botoninicio btn-lg shadow-sm adopt-btn w-100">
+                                <i class="fas fa-paw me-2"></i>Registrar Adoptante
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .botoninicio {
+        background-color: #000039;
+        color: #ffffff;
+        border: none;
+    }
+
+        .botoninicio:hover {
+            background-color: transparent;
+            color: #bab986;
+            border: 2px solid #bab986;
+        }
+    /* Page Title Styling */
+    .pet-page-title {
+        font-family: 'Arial', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .title-highlight {
+        position: relative;
+        display: inline-block;
+    }
+
+        .title-highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #bab986, #bab986);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+    .pet-page-title:hover .title-highlight::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .title-emoji {
+        display: inline-block;
+        transform: translateY(-3px);
+    }
+
+    /* Card styling */
+    .card {
+        perspective: 1000px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+        .card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+    /* Form styling */
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e1e5ea;
+        padding: 1.5rem 1rem 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: none;
+            border-color: #bab986;
+            border-width: 2px;
+        }
+
+    .form-floating label {
+        padding: 1rem;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+    }
+
+        .form-check-input:checked {
+            background-color: #000039;
+            border-color: #000039;
+        }
+
+    .form-check-label {
+        cursor: pointer;
+    }
+
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+    }
+
+    /* Button styling */
+    .adopt-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+    }
+
+        .adopt-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .adopt-btn:active {
+            transform: translateY(0);
+        }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .pet-page-title {
+            font-size: 2rem;
+        }
+    }
+
+    .login-container {
+        background-color: #f8f9fa;
+        padding: 3rem 0;
+        border-radius: 15px;
+        margin: 2rem auto;
+    }
+
+    .login-form {
+        padding: 1rem;
+    }
+
+    .text-danger {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+</style>
