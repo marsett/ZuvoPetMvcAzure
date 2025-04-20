@@ -28,6 +28,7 @@ namespace ZuvoPetMvcAzure.Controllers
             this.hubContext = hubContext;
         }
 
+
         private int GetCurrentUserId()
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

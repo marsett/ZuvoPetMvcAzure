@@ -168,5 +168,121 @@ namespace ZuvoPetMvcAzure.Services
             List<HistoriaExitoLandingDTO> historias = await this.CallApiAsync<List<HistoriaExitoLandingDTO>>(request);
             return historias;
         }
+
+        public async Task<string> GetFotoPerfilAdoptante(string token)
+        {
+            string request = "api/adoptante/ObtenerFotoPerfil";
+            string foto = await this.CallApiAsync<string>(request, token);
+            return foto;
+        }
+
+        public async Task<string> GetFotoPerfilRefugio(string token)
+        {
+            string request = "api/refugio/ObtenerFotoPerfil";
+            string foto = await this.CallApiAsync<string>(request, token);
+            return foto;
+        }
+
+        // Método correcto para obtener imágenes de adoptante
+        public async Task<Stream> GetImagenAdoptanteAsync(string nombreImagen)
+        {
+            try
+            {
+                // Usar el método que ya tienes para obtener el token
+                string token = this.GetUserToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("TOKEN VACÍO al intentar obtener imagen");
+                }
+                else
+                {
+                    Console.WriteLine($"TOKEN obtenido: {token.Substring(0, Math.Min(20, token.Length))}...");
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+                    }
+
+                    // Log para debug
+                    Console.WriteLine($"Intentando obtener imagen: {nombreImagen} desde {this.urlApi}api/Adoptante/imagen/{nombreImagen}");
+
+                    HttpResponseMessage response = await client.GetAsync($"api/adoptante/imagen/{nombreImagen}");
+
+                    Console.WriteLine($"Respuesta API: {(int)response.StatusCode} {response.StatusCode}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsStreamAsync();
+                    }
+
+                    // Obtener el mensaje de error detallado
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al obtener imagen: {response.StatusCode} - {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Excepción en GetImagenAdoptanteAsync: {ex.Message}");
+                throw; // Reenviar la excepción para que se maneje en el controlador
+            }
+        }
+
+        // Método correcto para obtener imágenes de refugio
+        public async Task<Stream> GetImagenRefugioAsync(string nombreImagen)
+        {
+            try
+            {
+                // Usar el método que ya tienes para obtener el token
+                string token = this.GetUserToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("TOKEN VACÍO al intentar obtener imagen");
+                }
+                else
+                {
+                    Console.WriteLine($"TOKEN obtenido: {token.Substring(0, Math.Min(20, token.Length))}...");
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+                    }
+
+                    // Log para debug
+                    Console.WriteLine($"Intentando obtener imagen: {nombreImagen} desde {this.urlApi}api/Refugio/imagen/{nombreImagen}");
+
+                    HttpResponseMessage response = await client.GetAsync($"api/Refugio/imagen/{nombreImagen}");
+
+                    Console.WriteLine($"Respuesta API: {(int)response.StatusCode} {response.StatusCode}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsStreamAsync();
+                    }
+
+                    // Obtener el mensaje de error detallado
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al obtener imagen: {response.StatusCode} - {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Excepción en GetImagenRefugioAsync: {ex.Message}");
+                throw; // Reenviar la excepción para que se maneje en el controlador
+            }
+        }
     }
 }

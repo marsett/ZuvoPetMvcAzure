@@ -243,7 +243,6 @@ namespace ZuvoPetMvcAzure.Controllers
         {
             // Obtener el token JWT
             string token = await this.service.GetTokenAsync(nombreusuario, contrasena);
-
             if (token == null)
             {
                 ViewData["MENSAJE"] = "Credenciales incorrectas token";
@@ -268,10 +267,37 @@ namespace ZuvoPetMvcAzure.Controllers
             identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId));
             identity.AddClaim(new Claim(ClaimTypes.Name, userName));
             identity.AddClaim(new Claim(ClaimTypes.Role, userRole));
-            // Almacenar el token en los claims - ESTA ES LA PARTE IMPORTANTE
+
+            // Almacenar el token en los claims
             identity.AddClaim(new Claim("TOKEN", token));
 
-            // Crear el principal y realizar el login
+            
+
+            // DESPUÉS de autenticar, obtenemos la foto de perfil
+            string fotoPerfil = String.Empty;
+
+            try
+            {
+                // Ahora que el usuario está autenticado, podemos obtener la foto
+                if (userRole == "Adoptante")
+                {
+                    fotoPerfil = await this.service.GetFotoPerfilAdoptante(token);
+                }
+                else if (userRole == "Refugio")
+                {
+                    fotoPerfil = await this.service.GetFotoPerfilRefugio(token);
+                }
+
+                Claim claimFoto = new Claim("FotoPerfil", fotoPerfil);
+                identity.AddClaim(claimFoto);
+            }
+            catch (Exception ex)
+            {
+                // Log del error pero continuamos con la redirección
+                Console.WriteLine($"Error al obtener foto de perfil: {ex.Message}");
+            }
+
+            // Crear el principal y realizar el login primero
             ClaimsPrincipal userPrincipal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
@@ -280,6 +306,7 @@ namespace ZuvoPetMvcAzure.Controllers
                 {
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(30)
                 });
+
 
             // Redirigir según el tipo de usuario
             if (userRole == "Adoptante")
