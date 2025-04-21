@@ -51,7 +51,6 @@ namespace ZuvoPetMvcAzure.Services
                 }
             }
         }
-
         private async Task<T> CallApiAsync<T>(string request)
         {
             using (HttpClient client = new HttpClient())
@@ -88,6 +87,55 @@ namespace ZuvoPetMvcAzure.Services
                 }
                 else
                 {
+                    return default(T);
+                }
+            }
+        }
+
+        // Método genérico para manejar diferentes tipos de llamadas HTTP (GET, POST, PUT, DELETE)
+        private async Task<T> CallApiAsync<T>(string request, string token, string method, object data = null)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(this.urlApi);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Accept.Add(this.header);
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+                }
+
+                HttpResponseMessage response;
+
+                switch (method.ToUpper())
+                {
+                    case "POST":
+                        string jsonPost = JsonConvert.SerializeObject(data);
+                        StringContent contentPost = new StringContent(jsonPost, Encoding.UTF8, "application/json");
+                        response = await client.PostAsync(request, contentPost);
+                        break;
+                    case "PUT":
+                        string jsonPut = JsonConvert.SerializeObject(data);
+                        StringContent contentPut = new StringContent(jsonPut, Encoding.UTF8, "application/json");
+                        response = await client.PutAsync(request, contentPut);
+                        break;
+                    case "DELETE":
+                        response = await client.DeleteAsync(request);
+                        break;
+                    default:
+                        throw new ArgumentException($"Método HTTP no soportado: {method}");
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    T resultado = await response.Content.ReadAsAsync<T>();
+                    return resultado;
+                }
+                else
+                {
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error en llamada API: {response.StatusCode} - {errorContent}");
                     return default(T);
                 }
             }
@@ -283,6 +331,447 @@ namespace ZuvoPetMvcAzure.Services
                 Console.WriteLine($"Excepción en GetImagenRefugioAsync: {ex.Message}");
                 throw; // Reenviar la excepción para que se maneje en el controlador
             }
+        }
+
+        public async Task<List<MascotaCard>> ObtenerMascotasDestacadasAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerMascotasDestacadas";
+            List<MascotaCard> mascotas = await this.CallApiAsync<List<MascotaCard>>(request, token);
+            return mascotas;
+        }
+
+        public async Task<List<HistoriaExito>> ObtenerHistoriasExitoAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerHistoriasExito";
+            List<HistoriaExito> historias = await this.CallApiAsync<List<HistoriaExito>>(request, token);
+            return historias;
+        }
+
+        public async Task<List<LikeHistoria>> ObtenerLikeHistoriaAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerLikesHistoria/" + idhistoria;
+            List<LikeHistoria> likeshistorias = await this.CallApiAsync<List<LikeHistoria>>(request, token);
+            return likeshistorias;
+        }
+
+        public async Task<List<Refugio>> ObtenerRefugiosAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerRefugios";
+            List<Refugio> refugios = await this.CallApiAsync<List<Refugio>>(request, token);
+            return refugios;
+        }
+
+        public async Task<Refugio> GetDetallesRefugioAsync(int idrefugio)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerDetallesRefugio/" + idrefugio;
+            Refugio detalles = await this.CallApiAsync<Refugio>(request, token);
+            return detalles;
+        }
+
+        public async Task<List<Mascota>> GetMascotasPorRefugioAsync(int idrefugio)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerMascotasRefugio/" + idrefugio;
+            List<Mascota> mascotas = await this.CallApiAsync<List<Mascota>>(request, token);
+            return mascotas;
+        }
+
+        public async Task<LikeHistoria> ObtenerLikeUsuarioHistoriaAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerLikeUsuarioHistoria/" + idhistoria;
+            LikeHistoria likes = await this.CallApiAsync<LikeHistoria>(request, token);
+            return likes;
+        }
+
+        public async Task<bool> EliminarLikeHistoriaAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/EliminarLikeHistoria/" + idhistoria;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "DELETE");
+            return resultado;
+        }
+
+        public async Task<bool> CrearLikeHistoriaAsync(int idhistoria, string tipoReaccion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/CrearLikeHistoria";
+
+            LikeHistoriaDTO likeDTO = new LikeHistoriaDTO
+            {
+                IdHistoria = idhistoria,
+                TipoReaccion = tipoReaccion
+            };
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "POST", likeDTO);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarLikeHistoriaAsync(int idhistoria, string tipoReaccion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ActualizarLikeHistoria";
+
+            LikeHistoriaDTO likeDTO = new LikeHistoriaDTO
+            {
+                IdHistoria = idhistoria,
+                TipoReaccion = tipoReaccion
+            };
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", likeDTO);
+            return resultado;
+        }
+
+        public async Task<Dictionary<string, int>> ObtenerContadoresReaccionesAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerContadoresReacciones/" + idhistoria;
+            Dictionary<string, int> contadores = await this.CallApiAsync<Dictionary<string, int>>(request, token);
+            return contadores;
+        }
+
+        public async Task<VistaPerfilAdoptante> GetPerfilAdoptante()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerPerfilAdoptante";
+            VistaPerfilAdoptante contadores = await this.CallApiAsync<VistaPerfilAdoptante>(request, token);
+            return contadores;
+        }
+
+        public async Task<List<MascotaCard>> ObtenerMascotasFavoritas()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerMascotasFavoritas";
+            List<MascotaCard> favoritas = await this.CallApiAsync<List<MascotaCard>>(request, token);
+            return favoritas;
+        }
+
+        public async Task<List<MascotaAdoptada>> ObtenerMascotasAdoptadas()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerMascotasAdoptadas";
+            List<MascotaAdoptada> adoptadas = await this.CallApiAsync<List<MascotaAdoptada>>(request, token);
+            return adoptadas;
+        }
+
+        public async Task<List<MascotaCard>> ObtenerMascotasAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerMascotas";
+            List<MascotaCard> mascotas = await this.CallApiAsync<List<MascotaCard>>(request, token);
+            return mascotas;
+        }
+
+        public async Task<DateTime?> ObtenerUltimaAccionFavorito(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerUltimaAccionFavorito/" + idmascota;
+            DateTime? ultimaaccion = await this.CallApiAsync<DateTime?>(request, token);
+            return ultimaaccion;
+        }
+
+        public async Task<bool> EsFavorito(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerEsFavorito/" + idmascota;
+            bool esfavorito = await this.CallApiAsync<bool>(request, token);
+            return esfavorito;
+        }
+
+        public async Task<bool> EliminarFavorito(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/EliminarFavorito/" + idmascota;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "DELETE");
+            return resultado;
+        }
+
+        public async Task<bool> InsertMascotaFavorita(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/CrearMascotaFavorita/" + idmascota;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "POST");
+            return resultado;
+        }
+
+        public async Task<Mascota> GetDetallesMascotaAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerDetallesMascota/" + idmascota;
+            Mascota detalles = await this.CallApiAsync<Mascota>(request, token);
+            return detalles;
+        }
+
+        public async Task<bool> ExisteSolicitudAdopcionAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerExisteSolicitudAdopcion/" + idmascota;
+            bool existe = await this.CallApiAsync<bool>(request, token);
+            return existe;
+        }
+
+        public async Task<SolicitudAdopcion> CrearSolicitudAdopcionAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/CrearSolicitudAdopcion/" + idmascota;
+            SolicitudAdopcion resultado = await this.CallApiAsync<SolicitudAdopcion>(request, token, "POST");
+            return resultado;
+        }
+
+        public async Task<string> GetNombreMascotaAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerNombreMascota/" + idmascota;
+            string nombre = await this.CallApiAsync<string>(request, token);
+            return nombre;
+        }
+
+        public async Task<int?> IdRefugioPorMascotaAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerIdRefugioPorMascota/" + idmascota;
+            int? idrefugio = await this.CallApiAsync<int?>(request, token);
+            return idrefugio;
+        }
+
+        public async Task<bool> CrearNotificacionAsync(int idsolicitud, int idrefugio, string nombremascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/CrearNotificacion";
+
+            NotificacionCreacionDTO notificacion = new NotificacionCreacionDTO
+            {
+                IdSolicitud = idsolicitud,
+                IdRefugio = idrefugio,
+                NombreMascota = nombremascota
+            };
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "POST", notificacion);
+            return resultado;
+        }
+
+        public async Task<List<Notificacion>> GetNotificacionesUsuarioAsync(int pagina = 1, int tamanopagina = 10)
+        {
+            if (pagina <= 0)
+            {
+                throw new ArgumentException("El número de página debe ser mayor que cero");
+            }
+
+            if (tamanopagina <= 0)
+            {
+                throw new ArgumentException("El tamaño de página debe ser mayor que cero");
+            }
+
+            string token = this.GetUserToken();
+            string request = $"api/adoptante/ObtenerNotificacionesUsuario?pagina={pagina}&tamanopagina={tamanopagina}";
+
+            List<Notificacion> notificaciones = await this.CallApiAsync<List<Notificacion>>(request, token);
+            return notificaciones;
+        }
+
+        public async Task<int> GetTotalNotificacionesUsuarioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerTotalNotificacionesUsuario";
+            int total = await this.CallApiAsync<int>(request, token);
+            return total;
+        }
+
+        public async Task<int> GetTotalNotificacionesNoLeidasAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerTotalNotificacionesNoLeidas";
+            int total = await this.CallApiAsync<int>(request, token);
+            return total;
+        }
+
+        public async Task<bool> HayNotificacionesNuevasDesdeAsync(DateTime desde)
+        {
+            string token = this.GetUserToken();
+            string fechaFormateada = desde.ToString("o");
+            string request = $"api/adoptante/ObtenerHayNotificacionesNuevasDesde?desde={Uri.EscapeDataString(fechaFormateada)}";
+
+            bool hayNotificacionesNuevas = await this.CallApiAsync<bool>(request, token);
+            return hayNotificacionesNuevas;
+        }
+
+        public async Task<bool> MarcarNotificacionComoLeidaAsync(int idnotificacion)
+        {
+            string token = this.GetUserToken();
+            string request = $"api/adoptante/ActualizarMarcarNotificacionComoLeida/{idnotificacion}";
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT");
+            return resultado;
+        }
+
+        public async Task<bool> MarcarTodasNotificacionesComoLeidasAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ActualizarMarcarTodasNotificacionesComoLeidas";
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT");
+            return resultado;
+        }
+
+        public async Task<bool> EliminarNotificacionAsync(int idnotificacion)
+        {
+            string token = this.GetUserToken();
+            string request = $"api/adoptante/EliminarNotificacion/{idnotificacion}";
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "DELETE");
+            return resultado;
+        }
+
+        public async Task<List<Mascota>> GetMascotasAdoptadasSinHistoria()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerMascotasAdoptadasSinHistoria";
+            List<Mascota> mascotas = await this.CallApiAsync<List<Mascota>>(request, token);
+            return mascotas;
+        }
+
+        public async Task<Adoptante> GetAdoptanteByUsuarioId()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerAdoptanteByUsuarioId";
+            Adoptante adoptante = await this.CallApiAsync<Adoptante>(request, token);
+            return adoptante;
+        }
+
+        public async Task<bool> CrearHistoriaExito(HistoriaExito historiaexito)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/CrearHistoriaExito";
+            bool resultado = await this.CallApiAsync<bool>(request, token, "POST", historiaexito);
+            return resultado;
+        }
+
+        public async Task<List<ConversacionViewModel>> GetConversacionesAdoptanteAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerConversacionesAdoptante";
+            List<ConversacionViewModel> conversaciones = await this.CallApiAsync<List<ConversacionViewModel>>(request, token);
+            return conversaciones;
+        }
+
+        public async Task<List<Mensaje>> GetMensajesConversacionAsync(int idotrousuario)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerMensajesConversacion/" + idotrousuario;
+            List<Mensaje> mensajes = await this.CallApiAsync<List<Mensaje>>(request, token);
+            return mensajes;
+        }
+
+        public async Task<Mensaje> AgregarMensajeAsync(int idreceptor, string contenido)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/CrearMensaje";
+
+            MensajeCreacionDTO mensaje = new MensajeCreacionDTO
+            {
+                IdReceptor = idreceptor,
+                Contenido = contenido
+            };
+
+            Mensaje m = await this.CallApiAsync<Mensaje>(request, token, "POST", mensaje);
+            return m;
+        }
+
+        public async Task<bool> ActualizarDescripcionAdoptante(string descripcion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ActualizarDescripcionAdoptante";
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", descripcion);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarDetallesAdoptante(VistaPerfilAdoptante modelo)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ActualizarDetallesAdoptante";
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", modelo);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarPerfilAdoptante(string email, string nombre)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ActualizarPerfilAdoptante";
+
+            PerfilAdoptanteDTO datos = new PerfilAdoptanteDTO
+            {
+                Email = email,
+                Nombre = nombre
+            };
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", datos);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarFotoPerfilAdoptante(string nombreArchivo)
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ActualizarFotoPerfil";
+
+            FotoPerfilDTO datos = new FotoPerfilDTO
+            {
+                NombreArchivo = nombreArchivo
+            };
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", datos);
+            return resultado;
+        }
+
+        public async Task<bool> IncrementarVistasMascota(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = $"api/adoptante/ActualizarVistasMascota/{idmascota}";
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT");
+            return resultado;
+        }
+
+        public async Task<bool> MarcarMensajesComoLeidosAsync(int idotrousuario)
+        {
+            string token = this.GetUserToken();
+            string request = $"api/adoptante/ActualizarMensajesComoLeidos/{idotrousuario}";
+
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT");
+            return resultado;
+        }
+
+        public async Task<Adoptante> GetAdoptanteByUsuarioIdAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerAdoptanteByUsuarioIdAsync";
+
+            Adoptante adoptante = await this.CallApiAsync<Adoptante>(request, token);
+            return adoptante;
+        }
+
+        public async Task<Refugio> GetRefugioChatByIdAsync(int idrefugio)
+        {
+            string token = this.GetUserToken();
+            string request = $"api/adoptante/ObtenerRefugioChatById/{idrefugio}";
+
+            Refugio refugio = await this.CallApiAsync<Refugio>(request, token);
+            return refugio;
+        }
+
+        public async Task<Refugio> GetRefugioChatDosByIdAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/adoptante/ObtenerRefugioChatDosById";
+
+            Refugio refugio = await this.CallApiAsync<Refugio>(request, token);
+            return refugio;
         }
     }
 }

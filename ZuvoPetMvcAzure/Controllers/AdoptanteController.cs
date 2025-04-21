@@ -11,6 +11,7 @@ using ZuvoPetNuget.Models;
 using ZuvoPetMvcAzure.Repositories;
 using Microsoft.AspNetCore.SignalR;
 using ZuvoPetMvcAzure.Hubs;
+using ZuvoPetMvcAzure.Services;
 
 namespace ZuvoPetMvcAzure.Controllers
 {
@@ -18,13 +19,13 @@ namespace ZuvoPetMvcAzure.Controllers
     public class AdoptanteController : BaseController
     {
         private readonly ZuvoPetMvcAzureContext context;
-        private readonly IRepositoryZuvoPet repo;
         private readonly IHubContext<ChatHub> hubContext;
         private HelperPathProvider helperPath;
-        public AdoptanteController(ZuvoPetMvcAzureContext context, IRepositoryZuvoPet repo, HelperPathProvider helperPath, IHubContext<ChatHub> hubContext)
+        private ServiceZuvoPet service;
+        public AdoptanteController(ZuvoPetMvcAzureContext context, HelperPathProvider helperPath, IHubContext<ChatHub> hubContext, ServiceZuvoPet service)
         {
             this.context = context;
-            this.repo = repo;
+            this.service = service;
             this.helperPath = helperPath;
             this.hubContext = hubContext;
         }
@@ -42,9 +43,9 @@ namespace ZuvoPetMvcAzure.Controllers
 
         public async Task<IActionResult> Index()
         {
-            List<MascotaCard> mascotasDestacadas = await this.repo.ObtenerMascotasDestacadasAsync();
+            List<MascotaCard> mascotasDestacadas = await this.service.ObtenerMascotasDestacadasAsync();
 
-            List<HistoriaExito> historiasExito = await this.repo.ObtenerHistoriasExitoAsync();
+            List<HistoriaExito> historiasExito = await this.service.ObtenerHistoriasExitoAsync();
 
 
             var historiasConDetalles = new List<HistoriaExitoConDetalles>();
@@ -53,7 +54,7 @@ namespace ZuvoPetMvcAzure.Controllers
             {
                 // Obtener los comentarios y likes para cada historia
                 //var comentariosHistoria = await this.repo.ObtenerComentariosHistoriaAsync(historia.Id);
-                var likeHistorias = await this.repo.ObtenerLikeHistoriaAsync(historia.Id);
+                var likeHistorias = await this.service.ObtenerLikeHistoriaAsync(historia.Id);
 
                 // Crear un objeto con la historia, comentarios y likes
                 var historiaConDetalles = new HistoriaExitoConDetalles
@@ -79,7 +80,7 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> Refugios(int pagina = 1)
         {
             // Obtener todos los refugios
-            List<Refugio> refugios = await this.repo.ObtenerRefugiosAsync();
+            List<Refugio> refugios = await this.service.ObtenerRefugiosAsync();
 
             // Configuración de la paginación
             int refugiosPorPagina = 6; // Puedes ajustar esta cantidad según tus necesidades
@@ -115,8 +116,8 @@ namespace ZuvoPetMvcAzure.Controllers
         {
             try
             {
-                Refugio refugio = await this.repo.GetDetallesRefugioAsync(idrefugio);
-                List<Mascota> mascotasDelRefugio = await this.repo.GetMascotasPorRefugioAsync(idrefugio);
+                Refugio refugio = await this.service.GetDetallesRefugioAsync(idrefugio);
+                List<Mascota> mascotasDelRefugio = await this.service.GetMascotasPorRefugioAsync(idrefugio);
                 if (mascotasDelRefugio.Count() != 0)
                 {
                     refugio.ListaMascotas = mascotasDelRefugio;
@@ -139,7 +140,7 @@ namespace ZuvoPetMvcAzure.Controllers
 
         public async Task<IActionResult> HistoriasExito()
         {
-            List<HistoriaExito> historiasExito = await this.repo.ObtenerHistoriasExitoAsync();
+            List<HistoriaExito> historiasExito = await this.service.ObtenerHistoriasExitoAsync();
 
 
             var historiasConDetalles = new List<HistoriaExitoConDetalles>();
@@ -148,7 +149,7 @@ namespace ZuvoPetMvcAzure.Controllers
             {
                 // Obtener los comentarios y likes para cada historia
                 //var comentariosHistoria = await this.repo.ObtenerComentariosHistoriaAsync(historia.Id);
-                var likeHistorias = await this.repo.ObtenerLikeHistoriaAsync(historia.Id);
+                var likeHistorias = await this.service.ObtenerLikeHistoriaAsync(historia.Id);
 
 
 
@@ -181,14 +182,16 @@ namespace ZuvoPetMvcAzure.Controllers
 
 
             // Verificar si el usuario ya tiene una reacción para esta historia
-            var reaccionExistente = await this.repo.ObtenerLikeUsuarioHistoriaAsync(idHistoria, idusuario);
+            //var reaccionExistente = await this.repo.ObtenerLikeUsuarioHistoriaAsync(idHistoria, idusuario);
+            var reaccionExistente = await this.service.ObtenerLikeUsuarioHistoriaAsync(idHistoria);
             bool resultado;
             string accion;
 
             // Si la reacción existente es del mismo tipo, eliminarla (toggle)
             if (reaccionExistente != null && reaccionExistente.TipoReaccion == tipoReaccion)
             {
-                resultado = await this.repo.EliminarLikeHistoriaAsync(idHistoria, idusuario);
+                //resultado = await this.repo.EliminarLikeHistoriaAsync(idHistoria, idusuario);
+                resultado = await this.service.EliminarLikeHistoriaAsync(idHistoria);
                 accion = "eliminado";
             }
             // Si la reacción es de otro tipo o no existe, crearla o actualizarla
@@ -196,11 +199,13 @@ namespace ZuvoPetMvcAzure.Controllers
             {
                 if (reaccionExistente == null)
                 {
-                    resultado = await this.repo.CrearLikeHistoriaAsync(idHistoria, idusuario, tipoReaccion);
+                    //resultado = await this.repo.CrearLikeHistoriaAsync(idHistoria, idusuario, tipoReaccion);
+                    resultado = await this.service.CrearLikeHistoriaAsync(idHistoria, tipoReaccion);
                 }
                 else
                 {
-                    resultado = await this.repo.ActualizarLikeHistoriaAsync(idHistoria, idusuario, tipoReaccion);
+                    //resultado = await this.repo.ActualizarLikeHistoriaAsync(idHistoria, idusuario, tipoReaccion);
+                    resultado = await this.service.ActualizarLikeHistoriaAsync(idHistoria, tipoReaccion);
                 }
                 accion = "agregado";
             }
@@ -208,7 +213,7 @@ namespace ZuvoPetMvcAzure.Controllers
             if (resultado)
             {
                 // Obtener contadores actualizados
-                var contadores = await this.repo.ObtenerContadoresReaccionesAsync(idHistoria);
+                var contadores = await this.service.ObtenerContadoresReaccionesAsync(idHistoria);
                 return Json(new
                 {
                     success = true,
@@ -235,7 +240,8 @@ namespace ZuvoPetMvcAzure.Controllers
             int idusuario = GetCurrentUserId();
 
             // Obtener la reacción actual del usuario para esta historia
-            var reaccion = await this.repo.ObtenerLikeUsuarioHistoriaAsync(idHistoria, idusuario);
+            //var reaccion = await this.repo.ObtenerLikeUsuarioHistoriaAsync(idHistoria, idusuario);
+            var reaccion = await this.service.ObtenerLikeUsuarioHistoriaAsync(idHistoria);
 
             if (reaccion != null)
             {
@@ -256,10 +262,13 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> Perfil(int pagina = 1)
         {
             int idusuario = GetCurrentUserId();
-            VistaPerfilAdoptante perfil = await this.repo.GetPerfilAdoptante(idusuario);
+            //VistaPerfilAdoptante perfil = await this.repo.GetPerfilAdoptante(idusuario);
+            VistaPerfilAdoptante perfil = await this.service.GetPerfilAdoptante();
 
-            var favoritos = await this.repo.ObtenerMascotasFavoritas(idusuario);
-            var adoptadas = await this.repo.ObtenerMascotasAdoptadas(idusuario);
+            //var favoritos = await this.repo.ObtenerMascotasFavoritas(idusuario);
+            var favoritos = await this.service.ObtenerMascotasFavoritas();
+            //var adoptadas = await this.repo.ObtenerMascotasAdoptadas(idusuario);
+            var adoptadas = await this.service.ObtenerMascotasAdoptadas();
 
             // Lógica de paginación
             var totalMascotas = favoritos.Count;
@@ -284,7 +293,8 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> _MascotaFavoritaPartial(int pagina = 1)
         {
             int idusuario = GetCurrentUserId();
-            var favoritos = await this.repo.ObtenerMascotasFavoritas(idusuario);
+            //var favoritos = await this.repo.ObtenerMascotasFavoritas(idusuario);
+            var favoritos = await this.service.ObtenerMascotasFavoritas();
 
             // Lógica de paginación
             var totalMascotas = favoritos.Count;
@@ -318,7 +328,8 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> _MascotasAdoptadasPartial(int pagina = 1)
         {
             int idusuario = GetCurrentUserId();
-            var adoptadas = await this.repo.ObtenerMascotasAdoptadas(idusuario);
+            //var adoptadas = await this.repo.ObtenerMascotasAdoptadas(idusuario);
+            var adoptadas = await this.service.ObtenerMascotasAdoptadas();
 
             // Lógica de paginación
             var totalMascotas = adoptadas.Count;
@@ -365,7 +376,8 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> ActualizarDescripcion(VistaPerfilAdoptante modelo)
         {
             int idusuario = GetCurrentUserId();
-            await this.repo.ActualizarDescripcionAdoptante(idusuario, modelo.Descripcion);
+            //await this.repo.ActualizarDescripcionAdoptante(idusuario, modelo.Descripcion);
+            await this.service.ActualizarDescripcionAdoptante(modelo.Descripcion);
             return RedirectToAction("Perfil");
         }
 
@@ -391,7 +403,8 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> ActualizarDetalles(VistaPerfilAdoptante modelo)
         {
             int idusuario = GetCurrentUserId();
-            await this.repo.ActualizarDetallesAdoptante(idusuario, modelo);
+            //await this.repo.ActualizarDetallesAdoptante(idusuario, modelo);
+            await this.service.ActualizarDetallesAdoptante(modelo);
             return RedirectToAction("Perfil");
         }
 
@@ -422,7 +435,8 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> ActualizarPerfil(VistaPerfilAdoptante modelo)
         {
             int idusuario = GetCurrentUserId();
-            await this.repo.ActualizarPerfilAdoptante(idusuario, modelo.Email, modelo.Nombre);
+            //await this.repo.ActualizarPerfilAdoptante(idusuario, modelo.Email, modelo.Nombre);
+            await this.service.ActualizarPerfilAdoptante(modelo.Email, modelo.Nombre);
             return RedirectToAction("Perfil");
         }
 
@@ -507,7 +521,8 @@ namespace ZuvoPetMvcAzure.Controllers
             string pathAccessor = this.helperPath.MapUrlPath(fileName, Folders.Images);
             int idusuario = GetCurrentUserId();
 
-            var adoptante = await repo.GetPerfilAdoptante(idusuario);
+            //var adoptante = await repo.GetPerfilAdoptante(idusuario);
+            var adoptante = await service.GetPerfilAdoptante();
 
             // Eliminar la foto de perfil anterior si existe
             if (!string.IsNullOrEmpty(adoptante.FotoPerfil))
@@ -519,7 +534,8 @@ namespace ZuvoPetMvcAzure.Controllers
                 }
             }
 
-            await this.repo.ActualizarFotoPerfilAdoptante(idusuario, fileName);
+            //await this.repo.ActualizarFotoPerfilAdoptante(idusuario, fileName);
+            await this.service.ActualizarFotoPerfilAdoptante(fileName);
 
             // Obtener la nueva foto para actualizar la sesión y los claims
             string fotoPerfil = await this.repo.GetFotoPerfilAsync(idusuario);
@@ -553,7 +569,7 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> Adopta(string ordenEdad, string tamano, string sexo, string especie, int pagina = 1)
         {
             // Llamamos al servicio para obtener todas las mascotas
-            List<MascotaCard> mascotas = await this.repo.ObtenerMascotasAsync();
+            List<MascotaCard> mascotas = await this.service.ObtenerMascotasAsync();
 
             // Aplicamos los filtros en la lista obtenida
             var query = mascotas.AsQueryable();
@@ -590,7 +606,8 @@ namespace ZuvoPetMvcAzure.Controllers
             var filteredMascotas = query.ToList();
 
             int idusuario = GetCurrentUserId();
-            var favoritos = await this.repo.ObtenerMascotasFavoritas(idusuario);
+            //var favoritos = await this.repo.ObtenerMascotasFavoritas(idusuario);
+            var favoritos = await this.service.ObtenerMascotasFavoritas();
             var idsFavoritos = favoritos.Select(f => f.Id).ToList();
 
             // Pasar los IDs de favoritos a ViewBag
@@ -638,7 +655,8 @@ namespace ZuvoPetMvcAzure.Controllers
             int idusuario = GetCurrentUserId();
             Console.WriteLine("IDUSUARIO", idusuario);
 
-            var lastActionTime = await this.repo.ObtenerUltimaAccionFavorito(idusuario, idmascota);
+            //var lastActionTime = await this.repo.ObtenerUltimaAccionFavorito(idusuario, idmascota);
+            var lastActionTime = await this.service.ObtenerUltimaAccionFavorito(idmascota);
 
             // Si la acción fue reciente (por ejemplo, en los últimos 2 segundos), no realizar nada
             if (lastActionTime != null && (DateTime.Now - lastActionTime.Value).TotalSeconds < 2)
@@ -646,15 +664,18 @@ namespace ZuvoPetMvcAzure.Controllers
                 return Json(new { success = false, message = "Esperar un momento antes de volver a hacer clic." });
             }
 
-            bool esFavorito = await this.repo.EsFavorito(idusuario, idmascota);
+            //bool esFavorito = await this.repo.EsFavorito(idusuario, idmascota);
+            bool esFavorito = await this.service.EsFavorito(idmascota);
 
             if (esFavorito)
             {
-                await this.repo.EliminarFavorito(idusuario, idmascota);
+                //await this.repo.EliminarFavorito(idusuario, idmascota);
+                await this.service.EliminarFavorito(idmascota);
             }
             else
             {
-                await this.repo.InsertMascotaFavorita(idusuario, idmascota);
+                //await this.repo.InsertMascotaFavorita(idusuario, idmascota);
+                await this.service.InsertMascotaFavorita(idmascota);
             }
 
             // For Ajax requests, return a JSON result
@@ -673,18 +694,21 @@ namespace ZuvoPetMvcAzure.Controllers
             int idusuario = GetCurrentUserId();
             Console.WriteLine("IDUSUARIO", idusuario);
 
-            var lastActionTime = await this.repo.ObtenerUltimaAccionFavorito(idusuario, idmascota);
+            //var lastActionTime = await this.repo.ObtenerUltimaAccionFavorito(idusuario, idmascota);
+            var lastActionTime = await this.service.ObtenerUltimaAccionFavorito(idmascota);
 
             if (lastActionTime != null && (DateTime.Now - lastActionTime.Value).TotalSeconds < 2)
             {
                 return Json(new { success = false, message = "Esperar un momento antes de volver a hacer clic." });
             }
 
-            bool esFavorito = await this.repo.EsFavorito(idusuario, idmascota);
+            //bool esFavorito = await this.repo.EsFavorito(idusuario, idmascota);
+            bool esFavorito = await this.service.EsFavorito(idmascota);
 
             if (esFavorito)
             {
-                await this.repo.EliminarFavorito(idusuario, idmascota);
+                //await this.repo.EliminarFavorito(idusuario, idmascota);
+                await this.service.EliminarFavorito(idmascota);
             }
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -721,14 +745,14 @@ namespace ZuvoPetMvcAzure.Controllers
 
         public async Task<IActionResult> DetallesMascota(int idmascota)
         {
-            Mascota mascota = await this.repo.GetDetallesMascotaAsync(idmascota);
+            Mascota mascota = await this.service.GetDetallesMascotaAsync(idmascota);
 
             // Comprobar si el usuario ya ha visto esta mascota
             string cookieName = $"Mascota_Vista_{idmascota}";
             if (Request.Cookies[cookieName] == null)
             {
                 // El usuario no ha visto esta mascota antes, incrementar contador
-                await this.repo.IncrementarVistasMascota(idmascota);
+                await this.service.IncrementarVistasMascota(idmascota);
 
                 // Crear una cookie para registrar que este usuario ya vio esta mascota
                 // La cookie expirará después de 30 días
@@ -749,18 +773,20 @@ namespace ZuvoPetMvcAzure.Controllers
         {
             int idusuario = GetCurrentUserId();
             // Verificar si ya existe una solicitud para evitar duplicados
-            bool existeSolicitud = await this.repo.ExisteSolicitudAdopcionAsync(idusuario, idmascota);
+            //bool existeSolicitud = await this.repo.ExisteSolicitudAdopcionAsync(idusuario, idmascota);
+            bool existeSolicitud = await this.service.ExisteSolicitudAdopcionAsync(idmascota);
             if (existeSolicitud)
             {
                 return Json(new { success = false, message = "Ya existe una solicitud para esta mascota" });
             }
-            SolicitudAdopcion resultado = await this.repo.CrearSolicitudAdopcionAsync(idusuario, idmascota);
+            //SolicitudAdopcion resultado = await this.repo.CrearSolicitudAdopcionAsync(idusuario, idmascota);
+            SolicitudAdopcion resultado = await this.service.CrearSolicitudAdopcionAsync(idmascota);
 
             if (resultado != null)
             {
-                string nombreMascota = await this.repo.GetNombreMascotaAsync(idmascota);
-                int idRefugio = await this.repo.IdRefugioPorMascotaAsync(idmascota) ?? 0;
-                bool notificacionARefugio = await this.repo.CrearNotificacionAsync(resultado.Id, idRefugio, nombreMascota);
+                string nombreMascota = await this.service.GetNombreMascotaAsync(idmascota);
+                int idRefugio = await this.service.IdRefugioPorMascotaAsync(idmascota) ?? 0;
+                bool notificacionARefugio = await this.service.CrearNotificacionAsync(resultado.Id, idRefugio, nombreMascota);
             }
 
 
@@ -786,7 +812,8 @@ namespace ZuvoPetMvcAzure.Controllers
             }
 
             int idusuario = GetCurrentUserId();
-            bool existeSolicitud = await this.repo.ExisteSolicitudAdopcionAsync(idusuario, idmascota);
+            //bool existeSolicitud = await this.repo.ExisteSolicitudAdopcionAsync(idusuario, idmascota);
+            bool existeSolicitud = await this.service.ExisteSolicitudAdopcionAsync(idmascota);
             return Json(new { solicitudExiste = existeSolicitud });
 
         }
