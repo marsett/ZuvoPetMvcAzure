@@ -2,6 +2,35 @@
 
 @{
     ViewData["Title"] = "Perfil del Adoptante";
+    var identity = User.Identity as ClaimsIdentity;
+    bool isAuthenticated = identity?.IsAuthenticated ?? false;
+    string fotoPerfilUrl = null;
+
+    // Primero, intenta usar TempData para la redirección inmediata
+    if (TempData["NuevaFotoUrl"] != null)
+    {
+        fotoPerfilUrl = TempData["NuevaFotoUrl"].ToString();
+    }
+    // Si no hay TempData, usa el claim
+    else if (isAuthenticated)
+    {
+        string fotoPerfil = User.Claims.FirstOrDefault(c => c.Type == "FotoPerfil")?.Value;
+
+        if (!string.IsNullOrEmpty(fotoPerfil))
+        {
+            // Si ya tiene un parámetro de versión, úsalo tal cual
+            if (fotoPerfil.Contains("?v="))
+            {
+                string nombreImagen = fotoPerfil.Split('?')[0];
+                string version = fotoPerfil.Split('?')[1];
+                fotoPerfilUrl = Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = nombreImagen }) + "?" + version;
+            }
+            else
+            {
+                fotoPerfilUrl = Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = fotoPerfil });
+            }
+        }
+    }
 }
 
 <div class="container py-5">
@@ -11,7 +40,7 @@
         <div class="position-relative" style="height: 220px; background: #bab986 !important;">
 
             <!-- Imagen de perfil con borde mejorado -->
-            <img src="~/images/@Model.Perfil.FotoPerfil" alt="Foto de Perfil"
+            <img src="@fotoPerfilUrl" alt="Foto de Perfil"
                  class="border-4 border-white shadow"
                  style="width: 250px; height: 250px; object-fit: cover; background-color: #f8f9fa; border-radius: 20px;
         margin: 20px; position: relative; z-index: 5;">
@@ -474,11 +503,50 @@
 
 @section Scripts {
     <script>
-        document.getElementById("fotoInput").addEventListener("change", function () {
+        // document.getElementById("fotoInput").addEventListener("change", function () {
+        //     if (this.files.length > 0) {
+        //         document.getElementById("uploadForm").submit();
+        //     }
+        // });
+                        document.getElementById("fotoInput").addEventListener("change", function() {
             if (this.files.length > 0) {
+                // Mostrar vista previa
+                const file = this.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    document.getElementById("fotoPerfil").src = e.target.result;
+                }
+
+                reader.readAsDataURL(file);
+
+                // Enviar el formulario
                 document.getElementById("uploadForm").submit();
             }
         });
+
+        // Si usas la foto de perfil en otras partes de la página (como en un menú)
+        // puedes forzar la recarga de esas imágenes cuando vuelvas del post
+        window.onload = function() {
+            // Verifica si hay un parámetro que indique que se actualizó la foto
+            if (window.location.href.includes('fotoActualizada=true') ||
+                document.cookie.includes('fotoActualizada=true')) {
+
+                // Forzar recarga de todas las imágenes que usan la foto de perfil
+                const imagenesUsuario = document.querySelectorAll('.imagen-usuario');
+                if (imagenesUsuario) {
+                    imagenesUsuario.forEach(img => {
+                        if (img.src.includes('GetImagenAdoptante')) {
+                            img.src = img.src.split('?')[0] + '?v=' + new Date().getTime();
+                        }
+                    });
+                }
+
+                // Limpiar el indicador
+                document.cookie = "fotoActualizada=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            }
+        };
+
 
         // Agregar esto a tu sección Scripts
         function cargarPagina(pagina) {

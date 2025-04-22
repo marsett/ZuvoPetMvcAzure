@@ -17,12 +17,16 @@ namespace ZuvoPetMvcAzure.Controllers
             Console.WriteLine($"NombreImagen recibido: {nombreImagen}");
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                    return Unauthorized();
                 var imagenStream = await this.service.GetImagenAdoptanteAsync(nombreImagen);
 
                 // Determinar el tipo de contenido basado en la extensión
                 string contentType = "image/png"; // Por defecto
                 if (nombreImagen.EndsWith(".jpg") || nombreImagen.EndsWith(".jpeg"))
                     contentType = "image/jpeg";
+
+                Response.Headers.Add("Cache-Control", "private,max-age=3600");
 
                 return File(imagenStream, contentType);
             }
@@ -43,6 +47,8 @@ namespace ZuvoPetMvcAzure.Controllers
                 string contentType = "image/png"; // Por defecto
                 if (nombreImagen.EndsWith(".jpg") || nombreImagen.EndsWith(".jpeg"))
                     contentType = "image/jpeg";
+
+                Response.Headers.Add("Cache-Control", "private,max-age=3600");
 
                 return File(imagenStream, contentType);
             }

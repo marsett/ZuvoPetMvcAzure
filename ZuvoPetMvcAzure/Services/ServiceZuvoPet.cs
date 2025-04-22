@@ -21,6 +21,63 @@ namespace ZuvoPetMvcAzure.Services
             this.contextAccessor = contextAccessor;
         }
 
+        public async Task<(bool Success, string FotoUrl, string Message)> ActualizarFotoPerfilAsync(IFormFile archivo)
+        {
+            try
+            {
+                string token = GetUserToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, null, "No se pudo obtener el token de autenticación");
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+                    client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+
+                    // Crear un contenido multipart
+                    using (var content = new MultipartFormDataContent())
+                    {
+                        // Convertir el archivo a stream content
+                        using (var streamContent = new StreamContent(archivo.OpenReadStream()))
+                        {
+                            streamContent.Headers.ContentType = new MediaTypeHeaderValue(archivo.ContentType);
+                            content.Add(streamContent, "archivo", archivo.FileName);
+
+                            // Verificar el rol del usuario para determinar el endpoint
+                            string userRole = this.contextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                            string request = userRole == "Adoptante"
+                                ? "api/adoptante/PostFotoPerfil"
+                                : "api/refugio/PostFotoPerfil";
+
+                            HttpResponseMessage response = await client.PostAsync(request, content);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var responseContent = await response.Content.ReadAsStringAsync();
+                                var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                                return (true, result.fotoUrl.ToString(), "Foto actualizada correctamente");
+                            }
+                            else
+                            {
+                                var errorContent = await response.Content.ReadAsStringAsync();
+                                var error = JsonConvert.DeserializeObject<dynamic>(errorContent);
+                                return (false, null, error?.mensaje?.ToString() ?? "Error al actualizar la foto de perfil");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar foto de perfil: {ex.Message}");
+                return (false, null, $"Error: {ex.Message}");
+            }
+        }
+
         public async Task<string> GetTokenAsync(string username, string password)
         {
             using (HttpClient client = new HttpClient())
@@ -236,6 +293,11 @@ namespace ZuvoPetMvcAzure.Services
         {
             try
             {
+                // Elimina el parámetro de versión si existe
+                if (nombreImagen != null && nombreImagen.Contains("?v="))
+                {
+                    nombreImagen = nombreImagen.Split('?')[0];
+                }
                 // Usar el método que ya tienes para obtener el token
                 string token = this.GetUserToken();
                 if (string.IsNullOrEmpty(token))

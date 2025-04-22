@@ -506,61 +506,131 @@ namespace ZuvoPetMvcAzure.Controllers
         //    return RedirectToAction("Perfil");
         //}
 
+        //[HttpPost]
+        //public async Task<IActionResult> SubirFichero(IFormFile fichero)
+        //{
+        //    string fileName = Guid.NewGuid().ToString() + ".png";
+        //    string path = this.helperPath.MapPath(fileName, Folders.Images);
+        //    string pathServer = this.helperPath.MapUrlPathServer(fileName, Folders.Images);
+
+        //    using (Stream stream = new FileStream(path, FileMode.Create))
+        //    {
+        //        await fichero.CopyToAsync(stream);
+        //    }
+
+        //    string pathAccessor = this.helperPath.MapUrlPath(fileName, Folders.Images);
+        //    int idusuario = GetCurrentUserId();
+
+        //    //var adoptante = await repo.GetPerfilAdoptante(idusuario);
+        //    var adoptante = await service.GetPerfilAdoptante();
+
+        //    // Eliminar la foto de perfil anterior si existe
+        //    if (!string.IsNullOrEmpty(adoptante.FotoPerfil))
+        //    {
+        //        string oldFilePath = this.helperPath.MapPath(adoptante.FotoPerfil, Folders.Images);
+        //        if (System.IO.File.Exists(oldFilePath))
+        //        {
+        //            System.IO.File.Delete(oldFilePath);
+        //        }
+        //    }
+
+        //    //await this.repo.ActualizarFotoPerfilAdoptante(idusuario, fileName);
+        //    await this.service.ActualizarFotoPerfilAdoptante(fileName);
+
+        //    // Obtener la nueva foto para actualizar la sesión y los claims
+        //    string fotoPerfil = await this.repo.GetFotoPerfilAsync(idusuario);
+
+        //    var user = HttpContext.User;
+        //    var identity = user.Identity as ClaimsIdentity;
+
+        //    if (identity != null)
+        //    {
+        //        // Eliminar el claim existente
+        //        var existingClaim = identity.FindFirst("FotoPerfil");
+        //        if (existingClaim != null)
+        //        {
+        //            identity.RemoveClaim(existingClaim);
+        //        }
+
+        //        // Agregar el nuevo claim con la nueva foto
+        //        Claim claimFoto = new Claim("FotoPerfil", fotoPerfil);
+        //        identity.AddClaim(claimFoto);
+
+        //        // REFRESCAR LA AUTENTICACIÓN DEL USUARIO
+        //        await HttpContext.SignInAsync(
+        //            CookieAuthenticationDefaults.AuthenticationScheme,
+        //            new ClaimsPrincipal(identity)
+        //        );
+        //    }
+
+        //    return RedirectToAction("Perfil");
+        //}
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubirFichero(IFormFile fichero)
         {
-            string fileName = Guid.NewGuid().ToString() + ".png";
-            string path = this.helperPath.MapPath(fileName, Folders.Images);
-            string pathServer = this.helperPath.MapUrlPathServer(fileName, Folders.Images);
-
-            using (Stream stream = new FileStream(path, FileMode.Create))
+            if (fichero == null || fichero.Length == 0)
             {
-                await fichero.CopyToAsync(stream);
+                TempData["Error"] = "No se ha seleccionado ningún archivo";
+                return RedirectToAction("Perfil");
             }
 
-            string pathAccessor = this.helperPath.MapUrlPath(fileName, Folders.Images);
-            int idusuario = GetCurrentUserId();
-
-            //var adoptante = await repo.GetPerfilAdoptante(idusuario);
-            var adoptante = await service.GetPerfilAdoptante();
-
-            // Eliminar la foto de perfil anterior si existe
-            if (!string.IsNullOrEmpty(adoptante.FotoPerfil))
+            // Validar tipo de archivo
+            string extension = Path.GetExtension(fichero.FileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".jpeg" && extension != ".png")
             {
-                string oldFilePath = this.helperPath.MapPath(adoptante.FotoPerfil, Folders.Images);
-                if (System.IO.File.Exists(oldFilePath))
-                {
-                    System.IO.File.Delete(oldFilePath);
-                }
+                TempData["Error"] = "Solo se permiten archivos JPG, JPEG o PNG";
+                return RedirectToAction("Perfil");
             }
 
-            //await this.repo.ActualizarFotoPerfilAdoptante(idusuario, fileName);
-            await this.service.ActualizarFotoPerfilAdoptante(fileName);
-
-            // Obtener la nueva foto para actualizar la sesión y los claims
-            string fotoPerfil = await this.repo.GetFotoPerfilAsync(idusuario);
-
-            var user = HttpContext.User;
-            var identity = user.Identity as ClaimsIdentity;
-
-            if (identity != null)
+            // Validar tamaño (por ejemplo, máximo 5MB)
+            if (fichero.Length > 5 * 1024 * 1024)
             {
-                // Eliminar el claim existente
-                var existingClaim = identity.FindFirst("FotoPerfil");
-                if (existingClaim != null)
+                TempData["Error"] = "El archivo no debe superar los 5MB";
+                return RedirectToAction("Perfil");
+            }
+
+            // Llamar al servicio para enviar la imagen a la API
+            var (success, fotoUrl, message) = await this.service.ActualizarFotoPerfilAsync(fichero);
+
+            if (success)
+            {
+                TempData["Success"] = "Foto de perfil actualizada correctamente";
+
+                // Genera un timestamp o ID único
+                string timestamp = DateTime.Now.Ticks.ToString();
+                string nombreImagen = Path.GetFileName(fotoUrl);
+
+                // Crea un nuevo nombre para el claim con el timestamp
+                string fotoClaimValue = $"{nombreImagen}?v={timestamp}";
+
+
+                // Actualizar el claim de la foto de perfil con la URL devuelta por la API
+                var identity = User.Identity as ClaimsIdentity;
+                var claim = identity.FindFirst("FotoPerfil");
+                if (claim != null)
                 {
-                    identity.RemoveClaim(existingClaim);
+                    identity.RemoveClaim(claim);
+                    identity.AddClaim(new Claim("FotoPerfil", fotoClaimValue));
+                }
+                else
+                {
+                    identity.AddClaim(new Claim("FotoPerfil", fotoClaimValue));
                 }
 
-                // Agregar el nuevo claim con la nueva foto
-                Claim claimFoto = new Claim("FotoPerfil", fotoPerfil);
-                identity.AddClaim(claimFoto);
-
-                // REFRESCAR LA AUTENTICACIÓN DEL USUARIO
+                // Actualizar la cookie de autenticación
                 await HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(identity)
-                );
+                    new ClaimsPrincipal(identity),
+                    new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTime.UtcNow.AddMinutes(30) });
+
+                // Añade un query parameter para forzar recarga en esta solicitud
+                TempData["NuevaFotoUrl"] = Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = nombreImagen, v = timestamp });
+            }
+            else
+            {
+                TempData["Error"] = message ?? "No se pudo actualizar la foto de perfil";
             }
 
             return RedirectToAction("Perfil");
@@ -829,16 +899,19 @@ namespace ZuvoPetMvcAzure.Controllers
             int tamañoPagina = 10; // Número de notificaciones por página
 
             // Obtener notificaciones del usuario
-            var notificaciones = await this.repo.GetNotificacionesUsuarioAsync(idUsuario, pagina, tamañoPagina);
+            //var notificaciones = await this.repo.GetNotificacionesUsuarioAsync(idUsuario, pagina, tamañoPagina);
+            var notificaciones = await this.service.GetNotificacionesUsuarioAsync(pagina, tamañoPagina);
 
             // Calcular información de paginación
-            int totalNotificaciones = await this.repo.GetTotalNotificacionesUsuarioAsync(idUsuario);
+            //int totalNotificaciones = await this.repo.GetTotalNotificacionesUsuarioAsync(idUsuario);
+            int totalNotificaciones = await this.service.GetTotalNotificacionesUsuarioAsync();
             int totalPaginas = (int)Math.Ceiling((double)totalNotificaciones / tamañoPagina);
 
             ViewBag.PaginaActual = pagina;
             ViewBag.TotalPaginas = totalPaginas;
             ViewBag.TotalNotificaciones = totalNotificaciones;
-            ViewBag.NoLeidas = await this.repo.GetTotalNotificacionesNoLeidasAsync(idUsuario);
+            //ViewBag.NoLeidas = await this.repo.GetTotalNotificacionesNoLeidasAsync(idUsuario);
+            ViewBag.NoLeidas = await this.service.GetTotalNotificacionesNoLeidasAsync();
 
             return View(notificaciones);
         }
@@ -860,7 +933,8 @@ namespace ZuvoPetMvcAzure.Controllers
             }
 
             // Verificar si hay notificaciones nuevas desde la última verificación
-            bool hayNuevas = await this.repo.HayNotificacionesNuevasDesdeAsync(idUsuario, ultimaVerificacion);
+            //bool hayNuevas = await this.repo.HayNotificacionesNuevasDesdeAsync(idUsuario, ultimaVerificacion);
+            bool hayNuevas = await this.service.HayNotificacionesNuevasDesdeAsync(ultimaVerificacion);
 
             // Actualizar el timestamp de última verificación
             HttpContext.Session.SetString("ULTIMA_VERIFICACION_NOTIF", DateTime.Now.ToString("o"));
@@ -877,7 +951,8 @@ namespace ZuvoPetMvcAzure.Controllers
             }
 
             int idUsuario = GetCurrentUserId();
-            bool resultado = await this.repo.MarcarNotificacionComoLeidaAsync(idNotificacion, idUsuario);
+            //bool resultado = await this.repo.MarcarNotificacionComoLeidaAsync(idNotificacion, idUsuario);
+            bool resultado = await this.service.MarcarNotificacionComoLeidaAsync(idNotificacion);
 
             return Json(new { success = resultado });
         }
@@ -891,7 +966,8 @@ namespace ZuvoPetMvcAzure.Controllers
             }
 
             int idUsuario = GetCurrentUserId();
-            bool resultado = await this.repo.MarcarTodasNotificacionesComoLeidasAsync(idUsuario);
+            //bool resultado = await this.repo.MarcarTodasNotificacionesComoLeidasAsync(idUsuario);
+            bool resultado = await this.service.MarcarTodasNotificacionesComoLeidasAsync();
 
             return Json(new { success = resultado });
         }
@@ -905,7 +981,8 @@ namespace ZuvoPetMvcAzure.Controllers
             }
 
             int idUsuario = GetCurrentUserId();
-            bool resultado = await this.repo.EliminarNotificacionAsync(idNotificacion, idUsuario);
+            //bool resultado = await this.repo.EliminarNotificacionAsync(idNotificacion, idUsuario);
+            bool resultado = await this.service.EliminarNotificacionAsync(idNotificacion);
 
             return Json(new { success = resultado });
         }
@@ -915,13 +992,15 @@ namespace ZuvoPetMvcAzure.Controllers
             int idusuario = GetCurrentUserId();
 
             // Obtener las mascotas adoptadas sin historia
-            var mascotas = await this.repo.GetMascotasAdoptadasSinHistoria(idusuario);
+            //var mascotas = await this.repo.GetMascotasAdoptadasSinHistoria(idusuario);
+            var mascotas = await this.service.GetMascotasAdoptadasSinHistoria();
 
             // Preparar los elementos para el dropdown
             ViewBag.Mascotas = new SelectList(mascotas, "Id", "Nombre");
 
             // Obtener el ID del adoptante y pasarlo a la vista
-            var adoptante = await this.repo.GetAdoptanteByUsuarioId(idusuario);
+            //var adoptante = await this.repo.GetAdoptanteByUsuarioId(idusuario);
+            var adoptante = await this.service.GetAdoptanteByUsuarioId();
             ViewBag.IdAdoptante = adoptante.Id;
 
             return View();
@@ -942,7 +1021,8 @@ namespace ZuvoPetMvcAzure.Controllers
             }
 
             int idusuario = GetCurrentUserId();
-            await this.repo.CrearHistoriaExito(historiaexito, idusuario);
+            //await this.repo.CrearHistoriaExito(historiaexito, idusuario);
+            await this.service.CrearHistoriaExito(historiaexito);
             return RedirectToAction("HistoriasExito");
         }
 
@@ -956,7 +1036,8 @@ namespace ZuvoPetMvcAzure.Controllers
         private async Task<int> GetIdUsuarioActual()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var adoptante = await this.repo.GetAdoptanteByUsuarioIdAsync(userId);
+            //var adoptante = await this.repo.GetAdoptanteByUsuarioIdAsync(userId);
+            var adoptante = await this.service.GetAdoptanteByUsuarioIdAsync();
             return userId;
         }
 
@@ -966,7 +1047,8 @@ namespace ZuvoPetMvcAzure.Controllers
         {
             //int usuarioId = await GetIdUsuarioActual();
             int usuarioId = GetCurrentUserId();
-            var conversaciones = await this.repo.GetConversacionesAdoptanteAsync(usuarioId);
+            //var conversaciones = await this.repo.GetConversacionesAdoptanteAsync(usuarioId);
+            var conversaciones = await this.service.GetConversacionesAdoptanteAsync();
             return View(conversaciones);
         }
 
@@ -1009,16 +1091,19 @@ namespace ZuvoPetMvcAzure.Controllers
             int usuarioActualId = GetCurrentUserId();
 
             // Obtener mensajes
-            var mensajes = await this.repo.GetMensajesConversacionAsync(usuarioActualId, id);
+            //var mensajes = await this.repo.GetMensajesConversacionAsync(usuarioActualId, id);
+            var mensajes = await this.service.GetMensajesConversacionAsync(id);
 
             // Marcar los mensajes como leídos
-            await repo.MarcarMensajesComoLeidosAsync(usuarioActualId, id);
+            //await repo.MarcarMensajesComoLeidosAsync(usuarioActualId, id);
+            await service.MarcarMensajesComoLeidosAsync(id);
 
             // Obtener nombre del destinatario
             //var adoptante = await context.Adoptantes
             //    .Include(adoptante => adoptante.Usuario.PerfilUsuario)
             //    .FirstOrDefaultAsync(r => r.IdUsuario == id);
-            var refugio = await this.repo.GetRefugioChatDosByIdAsync(id);
+            //var refugio = await this.repo.GetRefugioChatDosByIdAsync(id);
+            var refugio = await this.service.GetRefugioChatDosByIdAsync();
 
             string nombreDestinatario = refugio != null ? refugio.NombreRefugio : "UsuarioOL";
 
@@ -1044,7 +1129,8 @@ namespace ZuvoPetMvcAzure.Controllers
             }
 
             int emisorId = await GetIdUsuarioActual();
-            var mensaje = await this.repo.AgregarMensajeAsync(emisorId, destinatarioId, contenido);
+            //var mensaje = await this.repo.AgregarMensajeAsync(emisorId, destinatarioId, contenido);
+            var mensaje = await this.service.AgregarMensajeAsync(destinatarioId, contenido);
 
             // Notificar por SignalR
             await hubContext.Clients.User(destinatarioId.ToString())
@@ -1070,7 +1156,7 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> IniciarChat(int refugioId)
         {
             // Obtener el IdUsuario del refugio
-            var refugio = await this.repo.GetRefugioChatByIdAsync(refugioId);
+            var refugio = await this.service.GetRefugioChatByIdAsync(refugioId);
             if (refugio == null)
             {
                 return NotFound();
