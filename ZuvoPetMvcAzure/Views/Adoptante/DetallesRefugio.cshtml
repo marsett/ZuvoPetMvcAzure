@@ -15,7 +15,7 @@
         <div class="shelter-header">
             @if (Model?.Usuario?.PerfilUsuario != null && !string.IsNullOrEmpty(Model.Usuario.PerfilUsuario.FotoPerfil))
             {
-                <img src="~/images/@Model.Usuario.PerfilUsuario.FotoPerfil" class="w-100 h-100 object-fit-cover" alt="Imagen del refugio @Model.NombreRefugio">
+                <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = Model.Usuario.PerfilUsuario.FotoPerfil })" class="w-100 h-100 object-fit-cover" alt="Imagen del refugio @Model.NombreRefugio">
             }
             else
             {
@@ -68,14 +68,18 @@
                                         <i class="bi bi-house-heart-fill me-2"></i>
                                         Ocupación actual
                                     </h6>
-                                    <span class="fw-bold">@* @Model.ListaMascotas?.Count(m => m.Estado == "Disponible") *@ @Model.CantidadAnimales de @Model.CapacidadMaxima</span>
+                                    @{
+                                        int totalMascotasDisponibles = Model.ListaMascotas?.Count(m => m.Estado == "Disponible") ?? 0;
+                                        int capacidad = Model.CapacidadMaxima > 0 ? Model.CapacidadMaxima : 1; // Evita división por 0 o null
+
+                                        var porcentajeOcupacion = (int)((double)totalMascotasDisponibles / capacidad * 100);
+                                        var colorOcupacion = porcentajeOcupacion < 60 ? "#10B981" :
+                                        porcentajeOcupacion < 80 ? "#FBBF24" :
+                                        "#EF4444";
+                                    }
+                                    <span class="fw-bold">@totalMascotasDisponibles de @Model.CapacidadMaxima</span>
                                 </div>
-                                @{
-                                    var porcentajeOcupacion = (int)((double)@Model.ListaMascotas?.Count(m => m.Estado == "Disponible") / Model.CapacidadMaxima * 100);
-                                    var colorOcupacion = porcentajeOcupacion < 60 ? "#10B981" : // Verde
-                                    porcentajeOcupacion < 80 ? "#FBBF24" : // Amarillo
-                                    "#EF4444"; // Rojo
-                                }
+
                                 <div class="capacity-progress">
                                     <div class="capacity-progress-bar" data-progress="@porcentajeOcupacion"
                                          style="background-color: @colorOcupacion; width: @porcentajeOcupacion%;"></div>
@@ -85,7 +89,16 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if (Model.CapacidadMaxima == 0)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Este refugio aún no tiene capacidad configurada.
+                            </div>
+                        }
                     </div>
+
 
                     <!-- Mascotas disponibles en el refugio con paginación mejorada -->
                     <div class="section-card animate-section">
@@ -108,7 +121,7 @@
                                                 <div class="pet-card position-relative">
                                                     @if (!string.IsNullOrEmpty(mascota.Foto))
                                                     {
-                                                        <img src="~/images/@mascota.Foto" class="w-100 pet-image" alt="Foto de @mascota.Nombre">
+                                                        <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota.Foto })" class="w-100 pet-image" alt="Foto de @mascota.Nombre">
                                                     }
                                                     else
                                                     {

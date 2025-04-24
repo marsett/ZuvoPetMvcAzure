@@ -46,7 +46,7 @@
                 {
                     <div class="conversation-card">
                         <div class="conversation-avatar">
-                            <img src="~/images/@conversacion.Foto" alt="@conversacion.NombreUsuario" />
+                            <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = conversacion.Foto })" alt="@conversacion.NombreUsuario" />
                             @if (conversacion.NoLeidos > 0)
                             {
                                 <span class="unread-badge">@conversacion.NoLeidos</span>

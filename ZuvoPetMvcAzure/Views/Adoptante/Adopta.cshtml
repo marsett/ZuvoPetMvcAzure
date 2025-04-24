@@ -3,6 +3,13 @@
 @{
     var paginaActual = ViewBag.PaginaActual;
     var totalPaginas = ViewBag.TotalPaginas;
+
+    // Obtener los valores de los filtros actuales desde el Query String
+    var tamanoSeleccionado = Context.Request.Query["tamano"].ToString();
+    var sexoSeleccionado = Context.Request.Query["sexo"].ToString();
+    var especieSeleccionada = Context.Request.Query["especie"].ToString();
+    var ordenEdadSeleccionado = Context.Request.Query["ordenEdad"].ToString();
+
     @Html.AntiForgeryToken()
 }
 
@@ -98,25 +105,21 @@
 </script>
 
 <script>
-        function cargarPagina(pagina) {
-        // Mostrar un indicador de carga
+    function cargarPagina(pagina) {
         const petGallery = document.getElementById('petGallery');
         petGallery.innerHTML = '<div class="col-12 text-center mt-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
 
-        // Obtener los valores de los filtros actuales
         const tamano = document.getElementById('tamano').value;
         const sexo = document.getElementById('sexo').value;
         const especie = document.getElementById('especie').value;
         const ordenEdad = document.getElementById('ordenEdad').value;
 
-        // Construir la URL
         let url = '/Adoptante/Adopta?pagina=' + pagina;
         if (tamano) url += '&tamano=' + encodeURIComponent(tamano);
         if (sexo) url += '&sexo=' + encodeURIComponent(sexo);
         if (especie) url += '&especie=' + encodeURIComponent(especie);
         if (ordenEdad) url += '&ordenEdad=' + encodeURIComponent(ordenEdad);
 
-        // Realizar la solicitud AJAX
         fetch(url, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -124,13 +127,10 @@
         })
         .then(response => response.text())
         .then(html => {
-            // Actualizar el contenido de la página
-            document.body.innerHTML = html;
-
-            // Actualizar la URL del navegador sin recargar la página
+            document.getElementById('petGallery').innerHTML = html;
             window.history.pushState({ pagina: pagina }, 'Página ' + pagina, url);
 
-            // Reinicializar los eventos
+            // Reinicializa favoritos
             inicializarEventos();
         })
         .catch(error => {
@@ -138,6 +138,7 @@
         });
     }
 </script>
+
 
 <style>
     .pagination-controls .btn {
@@ -181,9 +182,9 @@
                         <div class="form-floating">
                             <select id="tamano" name="tamano" class="form-select">
                                 <option value="">Todos los Tamaños</option>
-                                <option value="Pequeño">Pequeño</option>
-                                <option value="Mediano">Mediano</option>
-                                <option value="Grande">Grande</option>
+                                <option value="Pequeño" selected="@(tamanoSeleccionado == "Pequeño")">Pequeño</option>
+                                <option value="Mediano" selected="@(tamanoSeleccionado == "Mediano")">Mediano</option>
+                                <option value="Grande" selected="@(tamanoSeleccionado == "Grande")">Grande</option>
                             </select>
                             <label for="tamano">Tamaño</label>
                         </div>
@@ -193,8 +194,8 @@
                         <div class="form-floating">
                             <select id="sexo" name="sexo" class="form-select">
                                 <option value="">Todos los Sexos</option>
-                                <option value="Macho">Macho</option>
-                                <option value="Hembra">Hembra</option>
+                                <option value="Macho" selected="@(sexoSeleccionado == "Macho")">Macho</option>
+                                <option value="Hembra" selected="@(sexoSeleccionado == "Hembra")">Hembra</option>
                             </select>
                             <label for="sexo">Sexo</label>
                         </div>
@@ -204,14 +205,14 @@
                         <div class="form-floating">
                             <select id="especie" name="especie" class="form-select">
                                 <option value="">Todas las Especies</option>
-                                <option value="Perro">Perro</option>
-                                <option value="Gato">Gato</option>
-                                <option value="Conejo">Conejo</option>
-                                <option value="Hámster">Hámster</option>
-                                <option value="Hurón">Hurón</option>
-                                <option value="Rata">Rata</option>
-                                <option value="Erizo">Erizo</option>
-                                <option value="Ardilla">Ardilla</option>
+                                <option value="Perro" selected="@(especieSeleccionada == "Perro")">Perro</option>
+                                <option value="Gato" selected="@(especieSeleccionada == "Gato")">Gato</option>
+                                <option value="Conejo" selected="@(especieSeleccionada == "Conejo")">Conejo</option>
+                                <option value="Hámster" selected="@(especieSeleccionada == "Hámster")">Hámster</option>
+                                <option value="Hurón" selected="@(especieSeleccionada == "Hurón")">Hurón</option>
+                                <option value="Rata" selected="@(especieSeleccionada == "Rata")">Rata</option>
+                                <option value="Erizo" selected="@(especieSeleccionada == "Erizo")">Erizo</option>
+                                <option value="Ardilla" selected="@(especieSeleccionada == "Ardilla")">Ardilla</option>
                             </select>
                             <label for="especie">Especie</label>
                         </div>
@@ -221,8 +222,8 @@
                         <div class="form-floating">
                             <select id="ordenEdad" name="ordenEdad" class="form-select">
                                 <option value="">Orden de Edad</option>
-                                <option value="asc">Más Joven a Más Viejo</option>
-                                <option value="desc">Más Viejo a Más Joven</option>
+                                <option value="asc" selected="@(ordenEdadSeleccionado == "asc")">Más Joven a Más Viejo</option>
+                                <option value="desc" selected="@(ordenEdadSeleccionado == "desc")">Más Viejo a Más Joven</option>
                             </select>
                             <label for="ordenEdad">Edad</label>
                         </div>
@@ -238,99 +239,9 @@
         </div>
     </div>
 
-    <!-- Pet Cards with Enhanced Design -->
-    <div class="row g-4" id="petGallery">
-        @foreach (var mascota in Model)
-        {
-            var años = mascota.Edad / 12;
-            var meses = mascota.Edad % 12;
-
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
-                    <div class="position-relative">
-                        <img src="~/images/@mascota.Foto"
-                             class="card-img-top pet-card-image"
-                             alt="@mascota.Nombre">
-                        <div class="pet-card-overlay">
-                            <div class="pet-card-badges">
-                                <div class="pet-sex-badge @(mascota.Sexo == "Macho" ? "bg-info" : "bg-pink")">
-                                    <i class="fas @(mascota.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="pet-card-content p-4">
-
-
-                            <div class="pet-name-container">
-                                <h4 class="pet-name">
-                                    @mascota.Nombre
-                                </h4>
-                                <a asp-controller="Adoptante"
-                                   asp-action="MascotaFavorita"
-                                   asp-route-idmascota="@mascota.Id"
-                                   class="favorite-heart"
-                                   data-mascota-id="@mascota.Id">
-                                    @if (ViewData["IDSFAVORITOS"] != null && ((List<int>)ViewData["IDSFAVORITOS"]).Contains(mascota.Id))
-                                    {
-                                        <i class="fas fa-heart text-danger"></i> <!-- Corazón lleno y rojo para favoritos -->
-                                    }
-                                    else
-                                    {
-                                        <i class="far fa-heart"></i> <!-- Corazón vacío para no favoritos -->
-                                    }
-                                </a>
-                            </div>
-
-                            <div class="pet-characteristics">
-                                <div class="characteristic">
-                                    <div class="characteristic-icon">
-                                        <i class="fas fa-ruler text-primary"></i>
-                                    </div>
-                                    <div class="characteristic-info">
-                                        <span class="label">Tamaño</span>
-                                        <span class="value">@mascota.Tamano</span>
-                                    </div>
-                                </div>
-
-                                <div class="characteristic">
-                                    <div class="characteristic-icon">
-                                        <i class="fas fa-birthday-cake text-success"></i>
-                                    </div>
-                                    <div class="characteristic-info">
-                                        <span class="label">Edad</span>
-                                        <span class="value">
-                                            @if (años > 0 && meses > 0)
-                                            {
-                                                @($"{años} año{(años != 1 ? "s" : "")} y {meses} mes{(meses != 1 ? "es" : "")}")
-                                            }
-                                            else if (años > 0)
-                                            {
-                                                @($"{años} año{(años != 1 ? "s" : "")}")
-                                            }
-                                            else
-                                            {
-                                                @($"{meses} mes{(meses != 1 ? "es" : "")}")
-                                            }
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="text-center mt-4">
-                                <a asp-controller="Adoptante"
-                                   asp-action="DetallesMascota"
-                                   asp-route-idmascota="@mascota.Id"
-                                   class="btn btn-primary btn-lg w-100 adopt-btn">
-                                    Más sobre @mascota.Nombre
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+    
+    <div id="petGallery">
+        @Html.Partial("_MascotasParciales", Model)
     </div>
 
     <!-- No pets found message remains the same -->
@@ -339,31 +250,6 @@
         <div class="text-center mt-5">
             <h3 class="text-muted">No se encontraron mascotas 😿</h3>
             <p class="lead">Prueba ajustando tus filtros de búsqueda</p>
-        </div>
-    }
-    @if (Model.Any())
-    {
-        <div class="row">
-            <div class="col-12">
-                <div class="pagination-controls d-flex justify-content-center mt-5 mb-5">
-                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(1)" @(paginaActual <= 1 ? "disabled" : "")>
-                        <i class="fas fa-angle-double-left"></i>
-                    </button>
-                    <button class="btn btn-outline-primary me-2" onclick="cargarPagina(@(paginaActual - 1))" @(paginaActual <= 1 ? "disabled" : "")>
-                        <i class="fas fa-angle-left"></i>
-                    </button>
-                    <span class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center mx-2">
-                        <i class="fas fa-paw me-1"></i>
-                        <span id="paginaInfo">@paginaActual de @totalPaginas</span>
-                    </span>
-                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@(paginaActual + 1))" @(paginaActual >= totalPaginas ? "disabled" : "")>
-                        <i class="fas fa-angle-right"></i>
-                    </button>
-                    <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@totalPaginas)" @(paginaActual >= totalPaginas ? "disabled" : "")>
-                        <i class="fas fa-angle-double-right"></i>
-                    </button>
-                </div>
-            </div>
         </div>
     }
 </div>

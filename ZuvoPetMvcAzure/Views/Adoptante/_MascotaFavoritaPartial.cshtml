@@ -25,7 +25,7 @@
             <!-- Tarjeta de mascota -->
             <div class="card pet-card border-0 shadow-lg overflow-hidden w-100 mb-4">
                 <div class="position-relative">
-                    <img src="~/images/@mascota.Foto"
+                    <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota.Foto })"
                          class="card-img-top pet-card-image"
                          alt="@mascota.Nombre">
                     <div class="pet-card-overlay">

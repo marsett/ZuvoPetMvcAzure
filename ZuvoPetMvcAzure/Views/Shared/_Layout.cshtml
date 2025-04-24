@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     @await RenderSectionAsync("Styles", required: false)
-    @inject IRepositoryZuvoPet Repo
+    @inject ServiceZuvoPet Service
     <style>
         .nav-item .nav-link .role-text {
             display: none;
@@ -369,7 +369,7 @@
             // Obtener notificaciones no leídas si tenemos un ID de usuario válido
             if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out int parsedUserId))
             {
-                notificacionesNoLeidas = await Repo.GetTotalNotificacionesNoLeidasAsync(parsedUserId);
+                notificacionesNoLeidas = await Service.GetTotalNotificacionesNoLeidasAsync();
             }
         }
 

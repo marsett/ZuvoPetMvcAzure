@@ -870,6 +870,14 @@ namespace ZuvoPetMvcAzure.Controllers
             //int usuarioId = await GetIdUsuarioActual();
             int usuarioId = GetCurrentUserId();
             var conversaciones = await this.repo.GetConversacionesRefugioAsync(usuarioId);
+            // Convertir las fechas de UTC a la zona horaria local
+            foreach (var conversacion in conversaciones)
+            {
+                // Asumiendo que FechaUltimoMensaje está en UTC
+                conversacion.FechaUltimoMensaje = TimeZoneInfo.ConvertTimeFromUtc(
+                    conversacion.FechaUltimoMensaje,
+                    TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time")); // Para España
+            }
             return View(conversaciones);
         }
 
@@ -914,6 +922,16 @@ namespace ZuvoPetMvcAzure.Controllers
 
             // Obtener mensajes
             var mensajes = await this.repo.GetMensajesConversacionAsync(usuarioActualId, id);
+
+            // Convertir las fechas de UTC a la zona horaria local
+            foreach (var mensaje in mensajes)
+            {
+                // Asumiendo que la propiedad Fecha en los mensajes es DateTime
+                mensaje.Fecha = TimeZoneInfo.ConvertTimeFromUtc(
+                    mensaje.Fecha,
+                    TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time")); // Para España
+                                                                                   // Alternativa: mensaje.Fecha = mensaje.Fecha.ToLocalTime(); // Si prefieres usar la zona horaria del servidor
+            }
 
             // Marcar los mensajes como leídos
             await repo.MarcarMensajesComoLeidosAsync(usuarioActualId, id);

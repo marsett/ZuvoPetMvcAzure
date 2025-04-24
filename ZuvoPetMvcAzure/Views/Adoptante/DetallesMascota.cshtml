@@ -650,7 +650,7 @@
 
             @if (!string.IsNullOrEmpty(Model.Foto))
             {
-                <img src="~/images/@Model.Foto" class="w-100 h-100 object-fit-cover" alt="Foto de @Model.Nombre">
+                <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = Model.Foto })" class="w-100 h-100 object-fit-cover" alt="Foto de @Model.Nombre">
             }
             else
             {

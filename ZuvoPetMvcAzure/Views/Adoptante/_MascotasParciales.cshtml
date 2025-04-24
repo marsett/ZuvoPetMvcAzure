@@ -1,0 +1,241 @@
+﻿@model List<MascotaCard>
+@{
+    var idsFavoritos = ViewData["IDSFAVORITOS"] as List<int> ?? new List<int>();
+    var paginaActual = ViewBag.PaginaActual;
+    var totalPaginas = ViewBag.TotalPaginas;
+}
+<script>
+    // Primero, define la función inicializarEventos que es llamada después de cargar contenido AJAX
+    function inicializarEventos() {
+        const favoriteHearts = document.querySelectorAll('.favorite-heart');
+
+        // Obtener el token de anti-falsificación (necesitas asegurarte que esté disponible)
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        let debounceTimeout;
+        favoriteHearts.forEach(heart => {
+            heart.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevenir navegación por defecto
+
+                // Deshabilitar el botón para evitar clics repetidos
+                this.disabled = true;
+
+                // Si ya hay un timeout de debounce, cancelarlo
+                clearTimeout(debounceTimeout);
+
+                // Establecer un nuevo timeout para ejecutar la solicitud
+                debounceTimeout = setTimeout(() => {
+                    const icon = this.querySelector('i');
+                    const mascotaId = this.getAttribute('data-mascota-id');
+
+                    // Crear un FormData para enviar los datos incluyendo el token
+                    const formData = new FormData();
+                    formData.append('idmascota', mascotaId);
+                    formData.append('__RequestVerificationToken', token);
+
+                    // Enviar solicitud Ajax
+                    fetch('/Adoptante/MascotaFavorita', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error('Error en la respuesta del servidor');
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Cambiar icono del corazón
+                            icon.classList.toggle('far');
+                            icon.classList.toggle('fas');
+                            icon.classList.toggle('text-danger');
+
+                            // Añadir animación de latido
+                            this.classList.add('active');
+
+                            // Quitar clase de animación después de completarse
+                            setTimeout(() => {
+                                this.classList.remove('active');
+                            }, 1000);
+                        } else {
+                            // Mostrar mensaje al usuario
+                            Toastify({
+                                text: data.message,
+                                duration: 3000,
+                                close: true,
+                                gravity: "top",
+                                position: "right",
+                                backgroundColor: "#ff5c5c",
+                                stopOnFocus: true
+                            }).showToast();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    })
+                    .finally(() => {
+                        // Volver a habilitar el botón después de un retraso
+                        setTimeout(() => {
+                            this.disabled = false;
+                        }, 1000);
+                    });
+                }, 500);
+            });
+        });
+    }
+
+    // Luego, ejecuta esta función cuando se carga la página inicialmente
+    document.addEventListener('DOMContentLoaded', function() {
+        inicializarEventos(); // Inicializar eventos para los elementos ya existentes en la página
+    });
+
+        function cargarPagina(pagina) {
+        const petGallery = document.getElementById('petGallery');
+        petGallery.innerHTML = '<div class="col-12 text-center mt-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+
+        // Obtén los valores de los filtros
+        const tamano = document.getElementById('tamano').value;
+        const sexo = document.getElementById('sexo').value;
+        const especie = document.getElementById('especie').value;
+        const ordenEdad = document.getElementById('ordenEdad').value;
+
+        // Construye la URL con los parámetros
+        let url = '/Adoptante/Adopta?pagina=' + pagina;
+        if (tamano) url += '&tamano=' + encodeURIComponent(tamano);
+        if (sexo) url += '&sexo=' + encodeURIComponent(sexo);
+        if (especie) url += '&especie=' + encodeURIComponent(especie);
+        if (ordenEdad) url += '&ordenEdad=' + encodeURIComponent(ordenEdad);
+
+        // Realiza la petición AJAX
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('petGallery').innerHTML = html;
+            window.history.pushState({ pagina: pagina }, 'Página ' + pagina, url);
+
+            // Reinicializa favoritos después de cargar el nuevo contenido
+            inicializarEventos();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+<div class="row g-4">
+@foreach (var mascota in Model)
+{
+    var años = mascota.Edad / 12;
+    var meses = mascota.Edad % 12;
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
+            <div class="position-relative">
+                <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota.Foto })"
+                     class="card-img-top pet-card-image"
+                     alt="@mascota.Nombre">
+                <div class="pet-card-overlay">
+                    <div class="pet-card-badges">
+                        <div class="pet-sex-badge @(mascota.Sexo == "Macho" ? "bg-info" : "bg-pink")">
+                            <i class="fas @(mascota.Sexo == "Macho" ? "fa-mars-stroke" : "fa-venus")"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="pet-card-content p-4">
+                    <div class="pet-name-container">
+                        <h4 class="pet-name">@mascota.Nombre</h4>
+                        <a asp-controller="Adoptante"
+                           asp-action="MascotaFavorita"
+                           asp-route-idmascota="@mascota.Id"
+                           class="favorite-heart"
+                           data-mascota-id="@mascota.Id">
+                            @if (idsFavoritos.Contains(mascota.Id))
+                            {
+                                <i class="fas fa-heart text-danger"></i>
+                            }
+                            else
+                            {
+                                <i class="far fa-heart"></i>
+                            }
+                        </a>
+                    </div>
+
+                    <div class="pet-characteristics">
+                        <div class="characteristic">
+                            <div class="characteristic-icon"><i class="fas fa-ruler text-primary"></i></div>
+                            <div class="characteristic-info">
+                                <span class="label">Tamaño</span>
+                                <span class="value">@mascota.Tamano</span>
+                            </div>
+                        </div>
+                        <div class="characteristic">
+                            <div class="characteristic-icon"><i class="fas fa-birthday-cake text-success"></i></div>
+                            <div class="characteristic-info">
+                                <span class="label">Edad</span>
+                                <span class="value">
+                                    @if (años > 0 && meses > 0)
+                                    {
+                                        @($"{años} año{(años != 1 ? "s" : "")} y {meses} mes{(meses != 1 ? "es" : "")}")
+                                    }
+                                    else if (años > 0)
+                                    {
+                                        @($"{años} año{(años != 1 ? "s" : "")}")
+                                    }
+                                    else
+                                    {
+                                        @($"{meses} mes{(meses != 1 ? "es" : "")}")
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a asp-controller="Adoptante"
+                           asp-action="DetallesMascota"
+                           asp-route-idmascota="@mascota.Id"
+                           class="btn btn-primary btn-lg w-100 adopt-btn">
+                            Más sobre @mascota.Nombre
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="pagination-controls d-flex justify-content-center mt-5 mb-5">
+                <button class="btn btn-outline-primary me-2" onclick="cargarPagina(1)" @(paginaActual <= 1 ? "disabled" : "")>
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="btn btn-outline-primary me-2" onclick="cargarPagina(@(paginaActual - 1))" @(paginaActual <= 1 ? "disabled" : "")>
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                <span class="badge bg-primary rounded-pill px-3 py-2 d-flex align-items-center mx-2">
+                    <i class="fas fa-paw me-1"></i>
+                    <span id="paginaInfo">@paginaActual de @totalPaginas</span>
+                </span>
+                <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@(paginaActual + 1))" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                <button class="btn btn-outline-primary ms-2" onclick="cargarPagina(@totalPaginas)" @(paginaActual >= totalPaginas ? "disabled" : "")>
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+}

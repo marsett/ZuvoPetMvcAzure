@@ -60,12 +60,13 @@
                             <div class="form-text">Comparte una imagen que muestre tu vida con tu mascota adoptada.</div>
                         </div>
 
+                        <!-- Modificación del div de los botones (punto de quiebre más temprano) -->
                         <div class="border-top pt-4 mt-4">
-                            <div class="d-flex justify-content-between">
-                                <a asp-action="HistoriasExito" class="btn btn-outline-secondary btn-lg">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                                <a asp-action="HistoriasExito" class="btn btn-outline-secondary btn-lg mb-2 mb-lg-0 w-100 w-lg-auto">
                                     <i class="fas fa-arrow-left me-2"></i>Cancelar
                                 </a>
-                                <button type="submit" class="btn btn-primary btn-lg">
+                                <button type="submit" class="btn btn-primary btn-lg w-100 w-lg-auto">
                                     <i class="fas fa-paper-plane me-2"></i>Publicar Historia
                                 </button>
                             </div>
@@ -76,7 +77,7 @@
         </div>
     </div>
 
-    <!-- Sección de consejos -->
+    <!-- Modificación de la sección de consejos (punto de quiebre más temprano) -->
     <div class="row justify-content-center mb-5">
         <div class="col-md-8">
             <div class="card border-0 shadow-lg overflow-hidden">
@@ -84,22 +85,22 @@
                     <h4 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Consejos para una gran historia</h4>
                 </div>
                 <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
+                    <div class="row row-cols-1 row-cols-lg-3">
+                        <div class="col mb-4">
                             <div class="text-center mb-3">
                                 <i class="fas fa-camera fa-3x text-info"></i>
                             </div>
                             <h5 class="text-center">Incluye fotos claras</h5>
                             <p class="text-center text-muted">Las fotos de buena calidad ayudan a transmitir mejor tu experiencia.</p>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col mb-4">
                             <div class="text-center mb-3">
                                 <i class="fas fa-heart fa-3x text-danger"></i>
                             </div>
                             <h5 class="text-center">Sé personal</h5>
                             <p class="text-center text-muted">Comparte cómo la adopción cambió tu vida y la de tu mascota.</p>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col mb-4">
                             <div class="text-center mb-3">
                                 <i class="fas fa-comment fa-3x text-success"></i>
                             </div>
@@ -134,6 +135,36 @@
     });
 </script>
 <style>
+    /* Estilos adicionales para el responsive - añade esto a tu bloque de estilos */
+    @@media (max-width: 1198.98px) {
+        .panel-welcome-title
+
+    {
+        font-size: 2rem;
+    }
+
+    .panel-welcome-subtitle {
+        font-size: 1rem;
+    }
+
+    .decorative-paw {
+        font-size: 7rem;
+    }
+
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+
+    }
+
+    /* Mejorar transición de los botones */
+    .btn {
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
     /* Estilos del encabezado del panel */
     .panel-welcome-container {
         position: relative;

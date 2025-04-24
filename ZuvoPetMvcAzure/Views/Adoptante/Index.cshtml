@@ -36,7 +36,7 @@
                 <div class="col-md-6">
                     <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
                         <div class="position-relative">
-                            <img src="~/images/@mascota.Foto"
+                            <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota.Foto })"
                                  class="card-img-top pet-card-image"
                                  alt=@mascota.Nombre>
                             <div class="pet-card-overlay">
@@ -100,7 +100,7 @@
                         <div class="col-md-6">
                             <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
                                 <div class="position-relative">
-                                    <img src="~/images/@mascota1.Foto"
+                                    <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota1.Foto })"
                                          class="card-img-top pet-card-image"
                                          alt=@mascota1.Nombre>
                                     <div class="pet-card-overlay">
@@ -135,7 +135,7 @@
                         <div class="col-md-6">
                             <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
                                 <div class="position-relative">
-                                    <img src="~/images/@mascota2.Foto"
+                                    <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota2.Foto })"
                                          class="card-img-top pet-card-image"
                                          alt=@mascota2.Nombre>
                                     <div class="pet-card-overlay">
@@ -206,7 +206,7 @@
                         <div class="col-md-4">
                             <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
                                 <div class="position-relative">
-                                    <img src="~/images/@mascota1.Foto"
+                                    <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota1.Foto })"
                                          class="card-img-top pet-card-image"
                                          alt=@mascota1.Nombre>
                                     <div class="pet-card-overlay">
@@ -241,7 +241,7 @@
                         <div class="col-md-4">
                             <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
                                 <div class="position-relative">
-                                    <img src="~/images/@mascota2.Foto"
+                                    <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota2.Foto })"
                                          class="card-img-top pet-card-image"
                                          alt=@mascota2.Nombre>
                                     <div class="pet-card-overlay">
@@ -276,7 +276,7 @@
                         <div class="col-md-4">
                             <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
                                 <div class="position-relative">
-                                    <img src="~/images/@mascota3.Foto"
+                                    <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = mascota3.Foto })"
                                          class="card-img-top pet-card-image"
                                          alt=@mascota3.Nombre>
                                     <div class="pet-card-overlay">

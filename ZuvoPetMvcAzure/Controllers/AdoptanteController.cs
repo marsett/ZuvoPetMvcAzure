@@ -12,6 +12,7 @@ using ZuvoPetMvcAzure.Repositories;
 using Microsoft.AspNetCore.SignalR;
 using ZuvoPetMvcAzure.Hubs;
 using ZuvoPetMvcAzure.Services;
+using Newtonsoft.Json;
 
 namespace ZuvoPetMvcAzure.Controllers
 {
@@ -141,7 +142,7 @@ namespace ZuvoPetMvcAzure.Controllers
         public async Task<IActionResult> HistoriasExito()
         {
             List<HistoriaExito> historiasExito = await this.service.ObtenerHistoriasExitoAsync();
-
+            
 
             var historiasConDetalles = new List<HistoriaExitoConDetalles>();
 
@@ -151,7 +152,10 @@ namespace ZuvoPetMvcAzure.Controllers
                 //var comentariosHistoria = await this.repo.ObtenerComentariosHistoriaAsync(historia.Id);
                 var likeHistorias = await this.service.ObtenerLikeHistoriaAsync(historia.Id);
 
-
+                if (!string.IsNullOrEmpty(historia.Foto))
+                {
+                    historia.Foto = $"{historia.Foto}?t={DateTime.Now.Ticks}";
+                }
 
                 // Crear un objeto con la historia, comentarios y likes
                 var historiaConDetalles = new HistoriaExitoConDetalles
@@ -164,6 +168,12 @@ namespace ZuvoPetMvcAzure.Controllers
                 // Añadir el objeto a la lista
                 historiasConDetalles.Add(historiaConDetalles);
             }
+
+            // Obtener las mascotas disponibles
+            var mascotasDisponibles = await this.service.GetMascotasAdoptadasSinHistoria();
+            // Guardarlo como HayMascotas para mayor claridad
+            ViewBag.HayMascotas = mascotasDisponibles != null && mascotasDisponibles.Any();
+
             return View(historiasConDetalles);
         }
 
@@ -712,7 +722,8 @@ namespace ZuvoPetMvcAzure.Controllers
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
                 // Para solicitudes AJAX, devuelve la vista parcial o completa
-                return View(mascotasPaginadas);
+                //return View(mascotasPaginadas);
+                return PartialView("_MascotasParciales", mascotasPaginadas);
             }
 
             return View(mascotasPaginadas);
@@ -1006,24 +1017,77 @@ namespace ZuvoPetMvcAzure.Controllers
             return View();
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> CrearHistoriaExito(HistoriaExito historiaexito, IFormFile fichero)
+        //{
+        //    if (fichero != null)
+        //    {
+        //        string fileName = Guid.NewGuid().ToString() + ".png";
+        //        string path = this.helperPath.MapPath(fileName, Folders.Images);
+        //        using (Stream stream = new FileStream(path, FileMode.Create))
+        //        {
+        //            await fichero.CopyToAsync(stream);
+        //        }
+        //        historiaexito.Foto = fileName;
+        //    }
+
+        //    int idusuario = GetCurrentUserId();
+        //    //await this.repo.CrearHistoriaExito(historiaexito, idusuario);
+        //    await this.service.CrearHistoriaExito(historiaexito);
+        //    return RedirectToAction("HistoriasExito");
+        //}
+
         [HttpPost]
         public async Task<IActionResult> CrearHistoriaExito(HistoriaExito historiaexito, IFormFile fichero)
         {
-            if (fichero != null)
+            try
             {
-                string fileName = Guid.NewGuid().ToString() + ".png";
-                string path = this.helperPath.MapPath(fileName, Folders.Images);
-                using (Stream stream = new FileStream(path, FileMode.Create))
-                {
-                    await fichero.CopyToAsync(stream);
-                }
-                historiaexito.Foto = fileName;
-            }
+                string fotoNombre = null;
 
-            int idusuario = GetCurrentUserId();
-            //await this.repo.CrearHistoriaExito(historiaexito, idusuario);
-            await this.service.CrearHistoriaExito(historiaexito);
-            return RedirectToAction("HistoriasExito");
+                if (fichero != null && fichero.Length > 0)
+                {
+                    // Validar tipo de archivo
+                    string extension = Path.GetExtension(fichero.FileName).ToLowerInvariant();
+                    if (extension != ".jpg" && extension != ".jpeg" && extension != ".png")
+                    {
+                        TempData["Error"] = "Solo se permiten archivos JPG, JPEG o PNG";
+                        return RedirectToAction("HistoriasExito");
+                    }
+
+                    // Validar tamaño (por ejemplo, máximo 5MB)
+                    if (fichero.Length > 5 * 1024 * 1024)
+                    {
+                        TempData["Error"] = "El archivo no debe superar los 5MB";
+                        return RedirectToAction("HistoriasExito");
+                    }
+
+                    // Subir la imagen usando el servicio
+                    var (success, fotoUrl, message) = await this.service.SubirImagenHistoriaExitoAsync(fichero);
+
+                    if (!success)
+                    {
+                        TempData["Error"] = message ?? "Error al subir la imagen";
+                        return RedirectToAction("HistoriasExito");
+                    }
+
+                    // Extraer el nombre del archivo de la URL
+                    fotoNombre = Path.GetFileName(fotoUrl);
+                    historiaexito.Foto = fotoNombre;
+                }
+
+                int idusuario = GetCurrentUserId();
+                Console.WriteLine($"Datos historia antes de enviar: {JsonConvert.SerializeObject(historiaexito)}");
+                var result = await this.service.CrearHistoriaExito(historiaexito);
+                Console.WriteLine($"Resultado: {result}");
+
+                TempData["Success"] = "Historia de éxito creada correctamente";
+                return RedirectToAction("HistoriasExito");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al crear la historia de éxito: " + ex.Message;
+                return RedirectToAction("HistoriasExito");
+            }
         }
 
         //private async Task<int> GetIdUsuarioActual()
@@ -1049,6 +1113,14 @@ namespace ZuvoPetMvcAzure.Controllers
             int usuarioId = GetCurrentUserId();
             //var conversaciones = await this.repo.GetConversacionesAdoptanteAsync(usuarioId);
             var conversaciones = await this.service.GetConversacionesAdoptanteAsync();
+            // Convertir las fechas de UTC a la zona horaria local
+            foreach (var conversacion in conversaciones)
+            {
+                // Asumiendo que FechaUltimoMensaje está en UTC
+                conversacion.FechaUltimoMensaje = TimeZoneInfo.ConvertTimeFromUtc(
+                    conversacion.FechaUltimoMensaje,
+                    TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time")); // Para España
+            }
             return View(conversaciones);
         }
 
@@ -1094,6 +1166,16 @@ namespace ZuvoPetMvcAzure.Controllers
             //var mensajes = await this.repo.GetMensajesConversacionAsync(usuarioActualId, id);
             var mensajes = await this.service.GetMensajesConversacionAsync(id);
 
+            // Convertir las fechas de UTC a la zona horaria local
+            foreach (var mensaje in mensajes)
+            {
+                // Asumiendo que la propiedad Fecha en los mensajes es DateTime
+                mensaje.Fecha = TimeZoneInfo.ConvertTimeFromUtc(
+                    mensaje.Fecha,
+                    TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time")); // Para España
+                                                                                   // Alternativa: mensaje.Fecha = mensaje.Fecha.ToLocalTime(); // Si prefieres usar la zona horaria del servidor
+            }
+
             // Marcar los mensajes como leídos
             //await repo.MarcarMensajesComoLeidosAsync(usuarioActualId, id);
             await service.MarcarMensajesComoLeidosAsync(id);
@@ -1103,7 +1185,7 @@ namespace ZuvoPetMvcAzure.Controllers
             //    .Include(adoptante => adoptante.Usuario.PerfilUsuario)
             //    .FirstOrDefaultAsync(r => r.IdUsuario == id);
             //var refugio = await this.repo.GetRefugioChatDosByIdAsync(id);
-            var refugio = await this.service.GetRefugioChatDosByIdAsync();
+            var refugio = await this.service.GetRefugioChatDosByIdAsync(id);
 
             string nombreDestinatario = refugio != null ? refugio.NombreRefugio : "UsuarioOL";
 

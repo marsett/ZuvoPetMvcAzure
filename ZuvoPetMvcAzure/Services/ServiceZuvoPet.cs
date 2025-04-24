@@ -21,6 +21,59 @@ namespace ZuvoPetMvcAzure.Services
             this.contextAccessor = contextAccessor;
         }
 
+        public async Task<(bool Success, string FotoUrl, string Message)> SubirImagenHistoriaExitoAsync(IFormFile archivo)
+        {
+            try
+            {
+                string token = GetUserToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, null, "No se pudo obtener el token de autenticación");
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+                    client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+
+                    // Crear un contenido multipart
+                    using (var content = new MultipartFormDataContent())
+                    {
+                        // Convertir el archivo a stream content
+                        using (var streamContent = new StreamContent(archivo.OpenReadStream()))
+                        {
+                            streamContent.Headers.ContentType = new MediaTypeHeaderValue(archivo.ContentType);
+                            content.Add(streamContent, "archivo", archivo.FileName);
+
+                            // Endpoint para subir la imagen de historia de éxito
+                            string request = "api/adoptante/SubirImagen";
+                            HttpResponseMessage response = await client.PostAsync(request, content);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var responseContent = await response.Content.ReadAsStringAsync();
+                                var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                                return (true, result.fotoUrl.ToString(), "Imagen subida correctamente");
+                            }
+                            else
+                            {
+                                var errorContent = await response.Content.ReadAsStringAsync();
+                                var error = JsonConvert.DeserializeObject<dynamic>(errorContent);
+                                return (false, null, error?.mensaje?.ToString() ?? "Error al subir la imagen");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al subir imagen de historia de éxito: {ex.Message}");
+                return (false, null, $"Error: {ex.Message}");
+            }
+        }
+
         public async Task<(bool Success, string FotoUrl, string Message)> ActualizarFotoPerfilAsync(IFormFile archivo)
         {
             try
@@ -170,6 +223,7 @@ namespace ZuvoPetMvcAzure.Services
                     case "POST":
                         string jsonPost = JsonConvert.SerializeObject(data);
                         StringContent contentPost = new StringContent(jsonPost, Encoding.UTF8, "application/json");
+                        Console.WriteLine($"Enviando POST a {request} con datos: {jsonPost}");
                         response = await client.PostAsync(request, contentPost);
                         break;
                     case "PUT":
@@ -391,6 +445,56 @@ namespace ZuvoPetMvcAzure.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Excepción en GetImagenRefugioAsync: {ex.Message}");
+                throw; // Reenviar la excepción para que se maneje en el controlador
+            }
+        }
+
+        // Método para obtener imágenes de mascotas
+        public async Task<Stream> GetImagenMascotaAsync(string nombreImagen)
+        {
+            try
+            {
+                // Elimina el parámetro de versión si existe
+                if (nombreImagen != null && nombreImagen.Contains("?v="))
+                {
+                    nombreImagen = nombreImagen.Split('?')[0];
+                }
+
+                // Usar el método que ya tienes para obtener el token
+                string token = this.GetUserToken();
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+                    }
+
+                    // Log para debug
+                    Console.WriteLine($"Intentando obtener imagen de mascota: {nombreImagen}");
+
+                    // Puedes elegir qué controlador usar basado en la lógica de tu aplicación
+                    HttpResponseMessage response = await client.GetAsync($"api/adoptante/imagenMascota/{nombreImagen}");
+                    // O si tienes un controlador específico para mascotas:
+                    // HttpResponseMessage response = await client.GetAsync($"api/mascota/imagen/{nombreImagen}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsStreamAsync();
+                    }
+
+                    // Obtener el mensaje de error detallado
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al obtener imagen de mascota: {response.StatusCode} - {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Excepción en GetImagenMascotaAsync: {ex.Message}");
                 throw; // Reenviar la excepción para que se maneje en el controlador
             }
         }
@@ -827,10 +931,10 @@ namespace ZuvoPetMvcAzure.Services
             return refugio;
         }
 
-        public async Task<Refugio> GetRefugioChatDosByIdAsync()
+        public async Task<Refugio> GetRefugioChatDosByIdAsync(int idusuariorefugio)
         {
             string token = this.GetUserToken();
-            string request = "api/adoptante/ObtenerRefugioChatDosById";
+            string request = "api/adoptante/ObtenerRefugioChatDosById/" + idusuariorefugio;
 
             Refugio refugio = await this.CallApiAsync<Refugio>(request, token);
             return refugio;
