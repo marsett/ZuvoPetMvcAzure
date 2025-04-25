@@ -939,5 +939,369 @@ namespace ZuvoPetMvcAzure.Services
             Refugio refugio = await this.CallApiAsync<Refugio>(request, token);
             return refugio;
         }
+
+
+        // Refugio
+
+        public async Task<Refugio> GetRefugioByUsuarioIdAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerRefugioByUsuarioId";
+
+            Refugio refugio = await this.CallApiAsync<Refugio>(request, token);
+            return refugio;
+        }
+
+        public async Task<IEnumerable<Mascota>> GetMascotasByRefugioIdAsync(int idrefugio)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerMascotasByRefugioId/" + idrefugio;
+
+            IEnumerable<Mascota> mascotas = await this.CallApiAsync<IEnumerable<Mascota>>(request, token);
+            return mascotas;
+        }
+
+        public async Task<int> GetSolicitudesByEstadoAndRefugioAsync(int idrefugio, string estado)
+        {
+            string token = this.GetUserToken();
+            string request = $"api/refugio/ObtenerSolicitudesByEstadoAndRefugio?IdRefugio={idrefugio}&Estado={estado}";
+            int solicitudes = await this.CallApiAsync<int>(request, token);
+            return solicitudes;
+        }
+
+        public async Task<List<MascotaCard>> ObtenerMascotasRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerMascotasRefugio";
+            List<MascotaCard> mascotas = await this.CallApiAsync<List<MascotaCard>>(request, token);
+            return mascotas;
+        }
+
+        public async Task<Refugio> GetRefugio()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerRefugio";
+            Refugio refugio = await this.CallApiAsync<Refugio>(request, token);
+            return refugio;
+        }
+
+        public async Task<bool> CrearMascotaRefugioAsync(Mascota mascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/CrearMascotaRefugio";
+            bool resultado = await this.CallApiAsync<bool>(request, token, "POST", mascota);
+            return resultado;
+        }
+
+        public async Task<Mascota> GetMascotaByIdAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerMascotaById/" + idmascota;
+            Mascota mascota = await this.CallApiAsync<Mascota>(request, token);
+            return mascota;
+        }
+
+        public async Task<bool> UpdateMascotaAsync(Mascota mascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/UpdateMascota";
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", mascota);
+            return resultado;
+        }
+
+        public async Task<bool> DeleteMascotaAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/DeleteMascota/" + idmascota;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "DELETE");
+            return resultado;
+        }
+
+        public async Task<List<SolicitudAdopcion>> GetSolicitudesRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerSolicitudesRefugio";
+            List<SolicitudAdopcion> solicitudes = await this.CallApiAsync<List<SolicitudAdopcion>>(request, token);
+            return solicitudes;
+        }
+
+        public async Task<SolicitudAdopcion> GetSolicitudByIdAsync(int idsolicitud)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerSolicitudesById/" + idsolicitud;
+            SolicitudAdopcion solicitud = await this.CallApiAsync<SolicitudAdopcion>(request, token);
+            return solicitud;
+        }
+
+        public async Task<bool> ProcesarSolicitudAdopcionAsync(int idsolicitud, string nuevoEstado)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ProcesarSolicitudAdopcion";
+            SolicitudAdopcionDTO solicitud = new SolicitudAdopcionDTO
+            { 
+                IdSolicitud = idsolicitud, 
+                NuevoEstado = nuevoEstado 
+            };
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", solicitud);
+            return resultado;
+        }
+
+        public async Task<Mascota> GetDetallesMascotaRefugioAsync(int idmascota)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerDetallesMascota/" + idmascota;
+            Mascota mascota = await this.CallApiAsync<Mascota>(request, token);
+            return mascota;
+        }
+
+        public async Task<List<HistoriaExito>> ObtenerHistoriasExitoRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerHistoriasExito";
+            List<HistoriaExito> historias = await this.CallApiAsync<List<HistoriaExito>>(request, token);
+            return historias;
+        }
+
+        public async Task<List<LikeHistoria>> ObtenerLikeHistoriaRefugioAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerLikeHistoria/" + idhistoria;
+            List<LikeHistoria> likes = await this.CallApiAsync<List<LikeHistoria>>(request, token);
+            return likes;
+        }
+
+        public async Task<LikeHistoria> ObtenerLikeUsuarioHistoriaRefugioAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerLikeUsuarioHistoria/" + idhistoria;
+            LikeHistoria like = await this.CallApiAsync<LikeHistoria>(request, token);
+            return like;
+        }
+
+        public async Task<bool> EliminarLikeHistoriaRefugioAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/EliminarLikeHistoria/" + idhistoria;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "DELETE");
+            return resultado;
+        }
+
+        public async Task<bool> CrearLikeHistoriaRefugioAsync(int idhistoria, string tiporeaccion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/CrearLikeHistoria";
+            LikeHistoriaDTO like = new LikeHistoriaDTO 
+            { 
+                IdHistoria = idhistoria, 
+                TipoReaccion = tiporeaccion 
+            };
+            bool resultado = await this.CallApiAsync<bool>(request, token, "POST", like);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarLikeHistoriaRefugioAsync(int idhistoria, string tiporeaccion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarLikeHistoria";
+            LikeHistoriaDTO like = new LikeHistoriaDTO
+            {
+                IdHistoria = idhistoria,
+                TipoReaccion = tiporeaccion
+            };
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", like);
+            return resultado;
+        }
+
+        public async Task<Dictionary<string, int>> ObtenerContadoresReaccionesRefugioAsync(int idhistoria)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerContadoresReacciones/" + idhistoria;
+            Dictionary<string, int> contadores = await this.CallApiAsync<Dictionary<string, int>>(request, token);
+            return contadores;
+        }
+
+        public async Task<List<Notificacion>> GetNotificacionesUsuarioRefugioAsync(int pagina = 1, int tamanopagina = 10)
+        {
+            if (pagina <= 0)
+            {
+                throw new ArgumentException("El número de página debe ser mayor que cero");
+            }
+
+            if (tamanopagina <= 0)
+            {
+                throw new ArgumentException("El tamaño de página debe ser mayor que cero");
+            }
+
+            string token = this.GetUserToken();
+            string request = $"api/refugio/ObtenerNotificacionesUsuario?pagina={pagina}&tamanopagina={tamanopagina}";
+
+            List<Notificacion> notificaciones = await this.CallApiAsync<List<Notificacion>>(request, token);
+            return notificaciones;
+        }
+
+        public async Task<int> GetTotalNotificacionesUsuarioRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerTotalNotificacionesUsuario";
+            int total = await this.CallApiAsync<int>(request, token);
+            return total;
+        }
+
+        public async Task<int> GetTotalNotificacionesNoLeidasRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerTotalNotificacionesNoLeidas";
+            int total = await this.CallApiAsync<int>(request, token);
+            return total;
+        }
+
+        public async Task<bool> HayNotificacionesNuevasDesdeRefugioAsync(DateTime desde)
+        {
+            string token = this.GetUserToken();
+            string fechaFormateada = desde.ToString("o");
+            string request = $"api/refugio/ObtenerHayNotificacionesNuevasDesde?desde={Uri.EscapeDataString(fechaFormateada)}";
+            bool hayNotificacionesNuevas = await this.CallApiAsync<bool>(request, token);
+            return hayNotificacionesNuevas;
+        }
+
+        public async Task<bool> MarcarNotificacionComoLeidaRefugioAsync(int idnotificacion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarNotificacionComoLeida/" + idnotificacion;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT");
+            return resultado;
+        }
+
+        public async Task<bool> MarcarTodasNotificacionesComoLeidasRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarTodasNotificacionesComoLeidas";
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT");
+            return resultado;
+        }
+
+        public async Task<bool> EliminarNotificacionRefugioAsync(int idnotificacion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/EliminarNotificacion/" + idnotificacion;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "DELETE");
+            return resultado;
+        }
+
+        public async Task<VistaPerfilRefugio> GetPerfilRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerPerfilRefugio";
+            VistaPerfilRefugio perfil = await this.CallApiAsync<VistaPerfilRefugio>(request, token);
+            return perfil;
+        }
+
+        public async Task<List<ConversacionViewModel>> GetConversacionesRefugioAsync()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerConversacionesRefugio";
+            List<ConversacionViewModel> conversaciones = await this.CallApiAsync<List<ConversacionViewModel>>(request, token);
+            return conversaciones;
+        }
+
+        public async Task<List<Mensaje>> GetMensajesConversacionRefugioAsync(int idotrousuario)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerMensajesConversacion/" + idotrousuario;
+            List<Mensaje> mensajes = await this.CallApiAsync<List<Mensaje>>(request, token);
+            return mensajes;
+        }
+
+        public async Task<Mensaje> CrearMensajeAsync(int idreceptor, string contenido)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/CrearMensaje";
+            MensajeCreacionDTO mensaje = new MensajeCreacionDTO
+            { 
+                IdReceptor = idreceptor, 
+                Contenido = contenido 
+            };
+            Mensaje resultado = await this.CallApiAsync<Mensaje>(request, token, "POST", mensaje);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarDescripcionRefugioAsync(string descripcion)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarDescripcionRefugio";
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", descripcion);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarDetallesRefugioAsync(string contacto, int cantidadanimales, int capacidadmaxima)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarDetallesRefugio";
+            DetallesRefugioDTO datos = new DetallesRefugioDTO
+            { 
+                Contacto = contacto, 
+                CantidadAnimales = cantidadanimales, 
+                CapacidadMaxima = capacidadmaxima 
+            };
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", datos);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarUbicacionRefugioAsync(double latitud, double longitud)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarUbicacionRefugio";
+            UbicacionRefugioDTO datos = new UbicacionRefugioDTO 
+            { 
+                Latitud = latitud, 
+                Longitud = longitud 
+            };
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", datos);
+            return resultado;
+        }
+
+        public async Task<bool> ActualizarPerfilRefugioAsync(string email, string nombrerefugio, string contactorefugio)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarPerfilRefugio";
+            PerfilRefugioDTO datos = new PerfilRefugioDTO 
+            { 
+                Email = email, 
+                NombreRefugio = nombrerefugio, 
+                ContactoRefugio = contactorefugio 
+            };
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT", datos);
+            return resultado;
+        }
+
+        public async Task<string> ActualizarFotoPerfilRefugioAsync(string nombreArchivo)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarFotoPerfil";
+
+            FotoPerfilDTO datos = new FotoPerfilDTO
+            {
+                NombreArchivo = nombreArchivo
+            };
+
+            string resultado = await this.CallApiAsync<string>(request, token, "PUT", datos);
+            return resultado;
+        }
+
+        public async Task<bool> MarcarMensajesComoLeidosRefugioAsync(int idotrousuario)
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ActualizarMensajesComoLeidos/" + idotrousuario;
+            bool resultado = await this.CallApiAsync<bool>(request, token, "PUT");
+            return resultado;
+        }
+
+        public async Task<Adoptante> GetAdoptanteChatByUsuarioId()
+        {
+            string token = this.GetUserToken();
+            string request = "api/refugio/ObtenerAdoptanteByUsuarioId";
+            Adoptante adoptante = await this.CallApiAsync<Adoptante>(request, token);
+            return adoptante;
+        }
     }
 }
