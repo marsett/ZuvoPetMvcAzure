@@ -91,6 +91,26 @@
     // Luego, ejecuta esta función cuando se carga la página inicialmente
     document.addEventListener('DOMContentLoaded', function() {
         inicializarEventos(); // Inicializar eventos para los elementos ya existentes en la página
+        // Establecer una bandera para usar al volver a la página
+    sessionStorage.setItem('hasVisitedBefore', 'true');
+    });
+
+        // Verificar cuando se regresa a la página
+    window.addEventListener('pageshow', function(event) {
+        // Solo hacer algo cuando volvemos usando el botón atrás
+        if (event.persisted) {
+            const hasVisitedBefore = sessionStorage.getItem('hasVisitedBefore');
+            if (hasVisitedBefore === 'true') {
+                console.log("Volviendo usando navegación atrás");
+
+                // Solo recargar la vista actual, no toda la página
+                setTimeout(function() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const pagina = urlParams.get('pagina') || 1;
+                    cargarPagina(pagina);
+                }, 100);
+            }
+        }
     });
 
         function cargarPagina(pagina) {

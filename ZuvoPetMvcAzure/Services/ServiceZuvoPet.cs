@@ -21,6 +21,153 @@ namespace ZuvoPetMvcAzure.Services
             this.contextAccessor = contextAccessor;
         }
 
+        public async Task<bool> EliminarFotoMascotaAsync(string nombreFoto)
+        {
+            try
+            {
+                string token = GetUserToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false;
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+                    client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+
+                    // Endpoint para eliminar la imagen de mascota
+                    string request = $"api/refugio/DeleteFotoMascota?nombreFoto={nombreFoto}";
+                    HttpResponseMessage response = await client.DeleteAsync(request);
+
+                    return response.IsSuccessStatusCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar imagen de mascota: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<(bool Success, string FotoUrl, string FotoNombre, string Message)> ActualizarFotoMascotaAsync(int idMascota, IFormFile archivo)
+        {
+            try
+            {
+                string token = GetUserToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, null, null, "No se pudo obtener el token de autenticación");
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+                    client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+
+                    // Crear un contenido multipart
+                    using (var content = new MultipartFormDataContent())
+                    {
+                        // Convertir el archivo a stream content
+                        using (var streamContent = new StreamContent(archivo.OpenReadStream()))
+                        {
+                            streamContent.Headers.ContentType = new MediaTypeHeaderValue(archivo.ContentType);
+                            content.Add(streamContent, "archivo", archivo.FileName);
+
+                            // Agregar el ID de la mascota al content
+                            content.Add(new StringContent(idMascota.ToString()), "idMascota");
+
+                            // Endpoint para actualizar la imagen de mascota
+                            string request = $"api/refugio/PostFotoMascota?idMascota={idMascota}";
+                            string requestUrl = client.BaseAddress + request;
+                            Console.WriteLine($"Intentando acceder a: {requestUrl}");
+                            HttpResponseMessage response = await client.PostAsync(request, content);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var responseContent = await response.Content.ReadAsStringAsync();
+                                var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                                return (
+                                    true,
+                                    result.fotoUrl.ToString(),
+                                    result.nombreFoto.ToString(),
+                                    result.mensaje.ToString()
+                                );
+                            }
+                            else
+                            {
+                                var errorContent = await response.Content.ReadAsStringAsync();
+                                var error = JsonConvert.DeserializeObject<dynamic>(errorContent);
+                                return (false, null, null, error?.mensaje?.ToString() ?? "Error al actualizar la imagen");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar imagen de mascota: {ex.Message}");
+                return (false, null, null, $"Error: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool Success, string FotoUrl, string Message)> SubirImagenMascotaAsync(IFormFile archivo)
+        {
+            try
+            {
+                string token = GetUserToken();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, null, "No se pudo obtener el token de autenticación");
+                }
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(this.urlApi);
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(this.header);
+                    client.DefaultRequestHeaders.Add("Authorization", "bearer " + token);
+
+                    // Crear un contenido multipart
+                    using (var content = new MultipartFormDataContent())
+                    {
+                        // Convertir el archivo a stream content
+                        using (var streamContent = new StreamContent(archivo.OpenReadStream()))
+                        {
+                            streamContent.Headers.ContentType = new MediaTypeHeaderValue(archivo.ContentType);
+                            content.Add(streamContent, "archivo", archivo.FileName);
+
+                            // Endpoint para subir la imagen de mascota
+                            string request = "api/refugio/SubirImagen"; // Ajusta según tu API
+                            HttpResponseMessage response = await client.PostAsync(request, content);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var responseContent = await response.Content.ReadAsStringAsync();
+                                var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                                return (true, result.fotoUrl.ToString(), "Imagen subida correctamente");
+                            }
+                            else
+                            {
+                                var errorContent = await response.Content.ReadAsStringAsync();
+                                var error = JsonConvert.DeserializeObject<dynamic>(errorContent);
+                                return (false, null, error?.mensaje?.ToString() ?? "Error al subir la imagen");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al subir imagen de mascota: {ex.Message}");
+                return (false, null, $"Error: {ex.Message}");
+            }
+        }
+
         public async Task<(bool Success, string FotoUrl, string Message)> SubirImagenHistoriaExitoAsync(IFormFile archivo)
         {
             try
@@ -1296,12 +1443,14 @@ namespace ZuvoPetMvcAzure.Services
             return resultado;
         }
 
-        public async Task<Adoptante> GetAdoptanteChatByUsuarioId()
+        public async Task<Adoptante> GetAdoptanteChatByUsuarioId(int idusuarioadoptante)
         {
             string token = this.GetUserToken();
-            string request = "api/refugio/ObtenerAdoptanteByUsuarioId";
+            string request = "api/refugio/ObtenerAdoptanteByUsuarioId/" + idusuarioadoptante;
             Adoptante adoptante = await this.CallApiAsync<Adoptante>(request, token);
             return adoptante;
         }
+
+
     }
 }

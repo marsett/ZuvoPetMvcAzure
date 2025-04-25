@@ -369,7 +369,14 @@
             // Obtener notificaciones no leídas si tenemos un ID de usuario válido
             if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out int parsedUserId))
             {
-                notificacionesNoLeidas = await Service.GetTotalNotificacionesNoLeidasAsync();
+                if (userRole == "Refugio")
+                {
+                    notificacionesNoLeidas = await Service.GetTotalNotificacionesNoLeidasRefugioAsync();
+                }
+                else if (userRole == "Adoptante")
+                {
+                    notificacionesNoLeidas = await Service.GetTotalNotificacionesNoLeidasAsync();
+                }
             }
         }
 

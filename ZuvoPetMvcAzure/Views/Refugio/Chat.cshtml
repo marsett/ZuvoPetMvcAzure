@@ -10,7 +10,7 @@
         <div class="chat-card">
             <div class="chat-header">
                 <div class="chat-user-info">
-                    <img src="~/images/@Model.FotoDestinatario" alt="@Model.NombreDestinatario" class="chat-user-avatar">
+                    <img src="@Url.Action("GetImagenRefugio", "Imagen", new { nombreImagen = Model.FotoDestinatario })" alt="@Model.NombreDestinatario" class="chat-user-avatar">
                     <div class="chat-user-details">
                         <h4 class="chat-user-name">@Model.NombreDestinatario</h4>
                     </div>

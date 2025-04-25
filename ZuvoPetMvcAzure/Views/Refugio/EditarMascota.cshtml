@@ -182,7 +182,7 @@
                                         <div id="preview" class="text-center">
                                             @if (!string.IsNullOrEmpty(Model.Foto))
                                             {
-                                                <img src="@Url.Content("~/images/" + Model.Foto)" class="image-preview" />
+                                                <img src="@Url.Action("GetImagenRefugio", "Imagen", new { nombreImagen = Model.Foto })" class="image-preview" />
                                             }
                                             else
                                             {

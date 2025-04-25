@@ -14,12 +14,18 @@
 }
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+        // Primero, define la función inicializarEventos que es llamada después de cargar contenido AJAX
+    function inicializarEventos() {
         const favoriteHearts = document.querySelectorAll('.favorite-heart');
 
-        // Obtener el token de anti-falsificación
-        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-        console.log('Token:', token);
+        // Obtener el token de anti-falsificación (asegurarse que esté disponible)
+        const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (!tokenElement) {
+            console.error('Token de verificación no encontrado');
+            return;
+        }
+
+        const token = tokenElement.value;
 
         let debounceTimeout;
         favoriteHearts.forEach(heart => {
@@ -36,7 +42,6 @@
                 debounceTimeout = setTimeout(() => {
                     const icon = this.querySelector('i');
                     const mascotaId = this.getAttribute('data-mascota-id');
-                    console.log('MascotaId:', mascotaId);
 
                     // Crear un FormData para enviar los datos incluyendo el token
                     const formData = new FormData();
@@ -71,17 +76,16 @@
                             setTimeout(() => {
                                 this.classList.remove('active');
                             }, 1000);
-
                         } else {
-                            // Mostrar mensaje al usuario si intenta hacer clic muy rápido
+                            // Mostrar mensaje al usuario
                             Toastify({
                                 text: data.message,
-                                duration: 3000, // Duración del mensaje (en milisegundos)
+                                duration: 3000,
                                 close: true,
-                                gravity: "top", // Mostrar en la parte superior de la página
-                                position: "right", // A la derecha de la página
-                                backgroundColor: "#ff5c5c", // Color de fondo del toast
-                                stopOnFocus: true // Pausar cuando el usuario haga clic en el toast
+                                gravity: "top",
+                                position: "right",
+                                backgroundColor: "#ff5c5c",
+                                stopOnFocus: true
                             }).showToast();
                         }
                     })
@@ -92,34 +96,72 @@
                         // Volver a habilitar el botón después de un retraso
                         setTimeout(() => {
                             this.disabled = false;
-                        }, 1000); // Deshabilitar por 1 segundo (ajustable)
+                        }, 1000);
                     });
-                }, 500); // Establecer un intervalo de 500ms (ajustable)
+                }, 500);
             });
         });
-    });
+    }
 </script>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        inicializarEventos(); // Inicializar eventos para los elementos ya existentes en la página
+    });
     console.log("Favoritos cargados:", @Html.Raw(Json.Serialize(ViewData["IDSFAVORITOS"])));
 </script>
 
 <script>
+        // Versión mejorada para navegadores modernos
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar eventos normalmente
+        inicializarEventos();
+
+        // Establecer una bandera para detectar si la página se está restaurando
+        let pageIsLoading = true;
+
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance &&
+                window.performance.getEntriesByType &&
+                window.performance.getEntriesByType("navigation")[0].type === "back_forward")) {
+
+                console.log("Página restaurada desde caché del navegador");
+
+                if (!pageIsLoading) {
+                    // Obtener parámetros actuales
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const pagina = urlParams.get('pagina') || 1;
+
+                    // Recargar la vista parcial
+                    cargarPagina(pagina);
+                }
+            }
+
+            pageIsLoading = false;
+        });
+    });
+    </script>
+
+<script>
+        // Función para cargar una página específica
     function cargarPagina(pagina) {
         const petGallery = document.getElementById('petGallery');
         petGallery.innerHTML = '<div class="col-12 text-center mt-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
 
+        // Obtén los valores de los filtros
         const tamano = document.getElementById('tamano').value;
         const sexo = document.getElementById('sexo').value;
         const especie = document.getElementById('especie').value;
         const ordenEdad = document.getElementById('ordenEdad').value;
 
+        // Construye la URL con los parámetros
         let url = '/Adoptante/Adopta?pagina=' + pagina;
         if (tamano) url += '&tamano=' + encodeURIComponent(tamano);
         if (sexo) url += '&sexo=' + encodeURIComponent(sexo);
         if (especie) url += '&especie=' + encodeURIComponent(especie);
         if (ordenEdad) url += '&ordenEdad=' + encodeURIComponent(ordenEdad);
 
+        // Realiza la petición AJAX
         fetch(url, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -130,13 +172,49 @@
             document.getElementById('petGallery').innerHTML = html;
             window.history.pushState({ pagina: pagina }, 'Página ' + pagina, url);
 
-            // Reinicializa favoritos
+            // Reinicializa favoritos después de cargar el nuevo contenido
             inicializarEventos();
         })
         .catch(error => {
             console.error('Error:', error);
         });
     }
+
+    // Añade un manejador para el evento popstate (navegación del historial)
+    window.addEventListener('popstate', function(event) {
+        // Obtener la URL actual después de la navegación atrás/adelante
+        const currentUrl = window.location.href;
+
+        // Extraer parámetros de la URL actual
+        const urlParams = new URLSearchParams(window.location.search);
+        const pagina = urlParams.get('pagina') || 1;
+
+        // Actualizar los valores de los filtros en el formulario para reflejar la URL actual
+        document.getElementById('tamano').value = urlParams.get('tamano') || '';
+        document.getElementById('sexo').value = urlParams.get('sexo') || '';
+        document.getElementById('especie').value = urlParams.get('especie') || '';
+        document.getElementById('ordenEdad').value = urlParams.get('ordenEdad') || '';
+
+        // Cargar la vista parcial adecuada
+        const petGallery = document.getElementById('petGallery');
+        petGallery.innerHTML = '<div class="col-12 text-center mt-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+
+        fetch(currentUrl, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('petGallery').innerHTML = html;
+
+            // Reinicializar eventos y estilos
+            inicializarEventos();
+        })
+        .catch(error => {
+            console.error('Error al cargar la página desde el historial:', error);
+        });
+    });
 </script>
 
 

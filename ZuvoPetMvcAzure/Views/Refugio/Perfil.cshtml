@@ -2,8 +2,36 @@
 
 @{
     ViewData["Title"] = "Perfil del Refugio";
-    @Html.AntiForgeryToken()
-    ;
+    @Html.AntiForgeryToken();
+    var identity = User.Identity as ClaimsIdentity;
+    bool isAuthenticated = identity?.IsAuthenticated ?? false;
+    string fotoPerfilUrl = null;
+
+    // Primero, intenta usar TempData para la redirección inmediata
+    if (TempData["NuevaFotoUrl"] != null)
+    {
+        fotoPerfilUrl = TempData["NuevaFotoUrl"].ToString();
+    }
+    // Si no hay TempData, usa el claim
+    else if (isAuthenticated)
+    {
+        string fotoPerfil = User.Claims.FirstOrDefault(c => c.Type == "FotoPerfil")?.Value;
+
+        if (!string.IsNullOrEmpty(fotoPerfil))
+        {
+            // Si ya tiene un parámetro de versión, úsalo tal cual
+            if (fotoPerfil.Contains("?v="))
+            {
+                string nombreImagen = fotoPerfil.Split('?')[0];
+                string version = fotoPerfil.Split('?')[1];
+                fotoPerfilUrl = Url.Action("GetImagenRefugio", "Imagen", new { nombreImagen = nombreImagen }) + "?" + version;
+            }
+            else
+            {
+                fotoPerfilUrl = Url.Action("GetImagenRefugio", "Imagen", new { nombreImagen = fotoPerfil });
+            }
+        }
+    }
 }
 
 <div class="container py-5">
@@ -12,7 +40,7 @@
         <div class="position-relative" style="height: 240px; background: #bab986 !important;">
 
             <!-- Imagen de perfil con borde mejorado -->
-            <img src="~/images/@Model.FotoPerfil" alt="Foto de Perfil"
+            <img src="@fotoPerfilUrl" alt="Foto de Perfil"
                  class="border-4 border-white shadow-lg"
                  style="width: 250px; height: 250px; object-fit: cover; background-color: #f8f9fa; border-radius: 24px;
                  margin: 20px; position: relative; z-index: 5; transition: transform 0.3s ease;">

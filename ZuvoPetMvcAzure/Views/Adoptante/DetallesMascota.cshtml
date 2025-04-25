@@ -1002,6 +1002,17 @@
         <script>
             // Inicializar elementos con animaciones
             document.addEventListener('DOMContentLoaded', function() {
+                // Guardar la URL actual en el historial con un estado personalizado
+            history.replaceState({ page: 'detalles' }, document.title, window.location.href);
+
+            // Añadir una nueva entrada al historial
+            history.pushState({ page: 'detalles' }, document.title, window.location.href);
+
+            // Detectar cuando el usuario presiona el botón atrás
+            window.addEventListener('popstate', function(event) {
+                // Redirigir a la página Adopta
+                window.location.href = '@Url.Action("Adopta", "Adoptante")';
+            });
                     // Verificar si el elemento mapa existe y si las coordenadas son válidas
             const mapaElement = document.getElementById('mapa');
             @if (Model.Latitud != 0 && Model.Longitud != 0)

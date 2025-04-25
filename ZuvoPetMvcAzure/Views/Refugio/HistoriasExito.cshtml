@@ -110,7 +110,7 @@
                             <!-- Imagen de la historia -->
                             <div class="personalizado p-0">
                                 <div class="img-container">
-                                    <img src="~/images/@historia.Foto" class="card-img-left" alt="Imagen de la historia" />
+                                    <img src="@Url.Action("GetImagenRefugio", "Imagen", new { nombreImagen = historia.Foto })" class="card-img-left" alt="Imagen de la historia" />
                                 </div>
                             </div>
                             <!-- Contenido de la historia -->

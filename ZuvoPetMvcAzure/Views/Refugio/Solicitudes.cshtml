@@ -25,7 +25,7 @@
             <div class="col-12 col-sm-12 col-md-12 col-lg-4">
                 <div class="card request-card h-100 border-0 shadow-lg overflow-hidden">
                     <div class="position-relative">
-                        <img src="~/images/@solicitud.Mascota.Foto"
+                        <img src="@Url.Action("GetImagenRefugio", "Imagen", new { nombreImagen = solicitud.Mascota.Foto })"
                              class="card-img-top request-card-image"
                              alt="@solicitud.Mascota.Nombre">
                         <div class="request-card-overlay">

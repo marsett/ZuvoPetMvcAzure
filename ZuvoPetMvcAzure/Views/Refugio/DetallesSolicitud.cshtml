@@ -23,7 +23,7 @@
         <div class="col-12 col-lg-4">
             <div class="card pet-card h-100 border-0 shadow-lg overflow-hidden">
                 <div class="position-relative">
-                    <img src="~/images/@Model.Mascota.Foto"
+                    <img src="@Url.Action("GetImagenAdoptante", "Imagen", new { nombreImagen = Model.Mascota.Foto })"
                          class="card-img-top pet-card-image"
                          alt="@Model.Mascota.Nombre">
                     <div class="pet-card-overlay">
