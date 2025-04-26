@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using ZuvoPetMvcAzure.Data;
+//using ZuvoPetMvcAzure.Data;
 using ZuvoPetMvcAzure.Filters;
-using ZuvoPetMvcAzure.Helpers;
+//using ZuvoPetMvcAzure.Helpers;
 using ZuvoPetNuget.Models;
 using Microsoft.AspNetCore.SignalR;
 using ZuvoPetMvcAzure.Hubs;
@@ -18,15 +18,15 @@ namespace ZuvoPetMvcAzure.Controllers
     [AuthorizeZuvoPetMvcAzure("Adoptante")]
     public class AdoptanteController : BaseController
     {
-        private readonly ZuvoPetMvcAzureContext context;
+        //private readonly ZuvoPetMvcAzureContext context;
         private readonly IHubContext<ChatHub> hubContext;
-        private HelperPathProvider helperPath;
+        //private HelperPathProvider helperPath;
         private ServiceZuvoPet service;
-        public AdoptanteController(ZuvoPetMvcAzureContext context, HelperPathProvider helperPath, IHubContext<ChatHub> hubContext, ServiceZuvoPet service)
+        public AdoptanteController(/*ZuvoPetMvcAzureContext context,*/ /*HelperPathProvider helperPath,*/ IHubContext<ChatHub> hubContext, ServiceZuvoPet service)
         {
-            this.context = context;
+            //this.context = context;
             this.service = service;
-            this.helperPath = helperPath;
+            //this.helperPath = helperPath;
             this.hubContext = hubContext;
         }
 
@@ -722,6 +722,7 @@ namespace ZuvoPetMvcAzure.Controllers
             {
                 // Para solicitudes AJAX, devuelve la vista parcial o completa
                 //return View(mascotasPaginadas);
+                ViewData["IncludeAntiForgeryToken"] = true;
                 return PartialView("_MascotasParciales", mascotasPaginadas);
             }
 

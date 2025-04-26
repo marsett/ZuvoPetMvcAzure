@@ -112,32 +112,71 @@
 </script>
 
 <script>
-        // Versión mejorada para navegadores modernos
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar eventos normalmente
+        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize token globally so it's available for all functions
+        const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (!tokenElement) {
+            console.error('Token de verificación no encontrado');
+        }
+
+        // Initialize events for existing elements
         inicializarEventos();
 
-        // Establecer una bandera para detectar si la página se está restaurando
-        let pageIsLoading = true;
+        // Set a flag that this page has been visited
+        sessionStorage.setItem('hasVisitedAdoptaPage', 'true');
 
+        // Handle back navigation with improved detection
         window.addEventListener('pageshow', function(event) {
-            if (event.persisted || (window.performance &&
-                window.performance.getEntriesByType &&
-                window.performance.getEntriesByType("navigation")[0].type === "back_forward")) {
+            // Check if page is being shown from cache (back button)
+            if (event.persisted ||
+                (window.performance &&
+                 window.performance.getEntriesByType &&
+                 window.performance.getEntriesByType("navigation")[0].type === "back_forward")) {
 
                 console.log("Página restaurada desde caché del navegador");
 
-                if (!pageIsLoading) {
-                    // Obtener parámetros actuales
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const pagina = urlParams.get('pagina') || 1;
+                // Get current URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const pagina = urlParams.get('pagina') || 1;
 
-                    // Recargar la vista parcial
+                // Force reload of the partial view
+                setTimeout(function() {
                     cargarPagina(pagina);
-                }
+                }, 100);
             }
+        });
 
-            pageIsLoading = false;
+        // Add listener for history navigation
+        window.addEventListener('popstate', function(event) {
+            // Get parameters from current URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pagina = urlParams.get('pagina') || 1;
+
+            // Update filter form values
+            document.getElementById('tamano').value = urlParams.get('tamano') || '';
+            document.getElementById('sexo').value = urlParams.get('sexo') || '';
+            document.getElementById('especie').value = urlParams.get('especie') || '';
+            document.getElementById('ordenEdad').value = urlParams.get('ordenEdad') || '';
+
+            // Show loading indicator
+            const petGallery = document.getElementById('petGallery');
+            petGallery.innerHTML = '<div class="col-12 text-center mt-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+
+            // Force reload instead of trying to use cached content
+            fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                petGallery.innerHTML = html;
+                inicializarEventos();
+            })
+            .catch(error => {
+                console.error('Error al cargar la página desde el historial:', error);
+            });
         });
     });
     </script>
@@ -164,7 +203,8 @@
         // Realiza la petición AJAX
         fetch(url, {
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'Cache-Control': 'no-cache'
             }
         })
         .then(response => response.text())

@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ZuvoPetMvcAzure.Filters;
-using ZuvoPetMvcAzure.Helpers;
+//using ZuvoPetMvcAzure.Helpers;
 using ZuvoPetNuget.Models;
-using ZuvoPetMvcAzure.Data;
+//using ZuvoPetMvcAzure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using ZuvoPetMvcAzure.Hubs;
@@ -16,15 +16,15 @@ namespace ZuvoPetMvcAzure.Controllers
     [AuthorizeZuvoPetMvcAzure("Refugio")]
     public class RefugioController : Controller
     {
-        private readonly ZuvoPetMvcAzureContext context;
+        //private readonly ZuvoPetMvcAzureContext context;
         private readonly ServiceZuvoPet service;
-        private HelperPathProvider helperPath;
+        //private HelperPathProvider helperPath;
         private readonly IHubContext<ChatHub> hubContext;
-        public RefugioController(ZuvoPetMvcAzureContext context, ServiceZuvoPet service, HelperPathProvider helperPath, IHubContext<ChatHub> hubContext)
+        public RefugioController(/*ZuvoPetMvcAzureContext context,*/ ServiceZuvoPet service, /*HelperPathProvider helperPath,*/ IHubContext<ChatHub> hubContext)
         {
             this.service = service;
-            this.helperPath = helperPath;
-            this.context = context;
+            //this.helperPath = helperPath;
+            //this.context = context;
             this.hubContext = hubContext;
         }
 
@@ -479,11 +479,11 @@ namespace ZuvoPetMvcAzure.Controllers
             if (!string.IsNullOrEmpty(mascota.Foto))
             {
                 // Eliminar imagen local si existe
-                string imagePath = this.helperPath.MapPath(mascota.Foto, Folders.Images);
-                if (System.IO.File.Exists(imagePath))
-                {
-                    System.IO.File.Delete(imagePath);
-                }
+                //string imagePath = this.helperPath.MapPath(mascota.Foto, Folders.Images);
+                //if (System.IO.File.Exists(imagePath))
+                //{
+                //    System.IO.File.Delete(imagePath);
+                //}
 
                 // Eliminar imagen del Azure Blob Storage
                 await this.service.EliminarFotoMascotaAsync(mascota.Foto);

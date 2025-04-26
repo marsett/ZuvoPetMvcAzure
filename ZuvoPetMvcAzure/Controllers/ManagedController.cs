@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
-using ZuvoPetMvcAzure.Data;
+//using ZuvoPetMvcAzure.Data;
 using ZuvoPetMvcAzure.Filters;
-using ZuvoPetMvcAzure.Helpers;
+//using ZuvoPetMvcAzure.Helpers;
 using ZuvoPetNuget.Models;
-using ZuvoPetMvcAzure.Repositories;
+//using ZuvoPetMvcAzure.Repositories;
 using ZuvoPetMvcAzure.Services;
 using ZuvoPetNuget.Dtos;
 
@@ -245,7 +245,7 @@ namespace ZuvoPetMvcAzure.Controllers
             string token = await this.service.GetTokenAsync(nombreusuario, contrasena);
             if (token == null)
             {
-                ViewData["MENSAJE"] = "Credenciales incorrectas token";
+                ViewData["MENSAJE"] = "Credenciales incorrectas, inténtalo de nuevo.";
                 return View();
             }
 

@@ -3,6 +3,7 @@
     var idsFavoritos = ViewData["IDSFAVORITOS"] as List<int> ?? new List<int>();
     var paginaActual = ViewBag.PaginaActual;
     var totalPaginas = ViewBag.TotalPaginas;
+    @Html.AntiForgeryToken();
 }
 <script>
     // Primero, define la función inicializarEventos que es llamada después de cargar contenido AJAX

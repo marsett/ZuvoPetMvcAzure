@@ -3,19 +3,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR;
-using ZuvoPetMvcAzure.Data;
-using ZuvoPetMvcAzure.Helpers;
-using ZuvoPetMvcAzure.Repositories;
+//using ZuvoPetMvcAzure.Data;
+//using ZuvoPetMvcAzure.Helpers;
+//using ZuvoPetMvcAzure.Repositories;
 using ZuvoPetMvcAzure.Hubs;
 using ZuvoPetMvcAzure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAntiforgery();
-builder.Services.AddSingleton<HelperPathProvider>();
+//builder.Services.AddSingleton<HelperPathProvider>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ServiceZuvoPet>();
-builder.Services.AddTransient<IRepositoryZuvoPet, RepositoryZuvoPet>();
+//builder.Services.AddTransient<IRepositoryZuvoPet, RepositoryZuvoPet>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
@@ -32,8 +32,8 @@ builder.Services.AddSession(options =>
 
 string connectionString = builder.Configuration.GetConnectionString("ZuvoPet");
 
-builder.Services.AddDbContext<ZuvoPetMvcAzureContext>(options =>
-    options.UseSqlServer(connectionString));
+//builder.Services.AddDbContext<ZuvoPetMvcAzureContext>(options =>
+//    options.UseSqlServer(connectionString));
 
 builder.Services.AddAuthentication(options =>
 {
