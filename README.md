@@ -4,13 +4,13 @@
 > Las contraseñas de tres números son generadas al insertar los datos desde el script SQL.  
 > Las dos últimas contraseñas son reales, creadas directamente desde la aplicación.
 
-| Nombre de usuario  | Contraseña       |
-|--------------------|------------------|
-| juanperez          | 123              |
-| maria123           | 321              |
-| carlos789          | 098              |
-| refugio_vida       | 890              |
-| hogar_animal       | 345              |
-| mario              | contrasenamario  |
-| refugioapi         | Refugio_1234     |
-| adoptanteapi       | Adoptante_1234   |
+| Nombre de usuario  | Contraseña       | Rol        |
+|--------------------|------------------|------------|
+| juanperez          | 123              | Adoptante  |
+| maria123           | 321              | Adoptante  |
+| carlos789          | 098              | Adoptante  |
+| refugio_vida       | 890              | Refugio    |
+| hogar_animal       | 345              | Refugio    |
+| mario              | contrasenamario  | Adoptante  |
+| refugioapi         | Refugio_1234     | Refugio    |
+| adoptanteapi       | Adoptante_1234   | Adoptante  |
